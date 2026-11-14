@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>the dressed in jacket — Arsip Kekuatan & Duel Entitas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #030712;
+      --glass-bg: rgba(10, 20, 44, 0.74);
+      --glass-border: rgba(56, 189, 248, 0.24);
+      --glass-border-strong: rgba(96, 165, 250, 0.58);
+      --star-cyan: #38bdf8;
+      --star-bright: #7dd3fc;
+      --star-core: #e0f2fe;
+      --moonlight: #cbd5e1;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-glow: 0 0 24px rgba(56, 189, 248, 0.35);
+      --transition: all 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    body.peak-mode {
+      --bg-deep: #02091c;
+      --glass-bg: rgba(12, 30, 72, 0.8);
+      --glass-border: rgba(56, 189, 248, 0.6);
+      --star-cyan: #00e5ff;
+      --star-bright: #a5f3fc;
+      --accent-glow: 0 0 38px rgba(0, 229, 255, 0.68);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-deep); color: var(--text-main); min-height: 100vh; overflow-x: hidden; line-height: 1.62; transition: background 0.5s ease; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    #starfield { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; pointer-events: none; }
+    .moon-ambient { position: fixed; top: -120px; right: -80px; width: 460px; height: 460px; border-radius: 50%; background: radial-gradient(circle, rgba(186, 230, 253, 0.17) 0%, rgba(56, 189, 248, 0.05) 45%, transparent 72%); z-index: -2; pointer-events: none; transition: var(--transition); }
+    body.peak-mode .moon-ambient { background: radial-gradient(circle, rgba(0, 229, 255, 0.3) 0%, rgba(29, 78, 216, 0.15) 50%, transparent 75%); transform: scale(1.15); }
+    .city-horizon { position: fixed; bottom: 0; left: 0; width: 100%; height: 185px; z-index: -1; pointer-events: none; opacity: 0.45; }
+
+    /* Navbar */
+    .navbar { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); background: rgba(3, 7, 18, 0.84); border-bottom: 1px solid var(--glass-border); }
+    .nav-container { max-width: 1220px; margin: 0 auto; padding: 0.8rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; }
+    .brand-icon { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #1e3a8a, #0ea5e9); display: grid; place-items: center; box-shadow: var(--accent-glow); border: 1px solid rgba(186, 230, 253, 0.45); }
+    .brand-text h1 { font-size: 0.98rem; font-weight: 800; color: var(--text-main); }
+    .brand-text span { font-size: 0.65rem; color: var(--star-cyan); display: block; }
+
+    .nav-menu { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+    .nav-btn { background: transparent; border: 1px solid transparent; color: var(--text-muted); padding: 0.46rem 0.78rem; border-radius: 10px; font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+    .nav-btn:hover { color: var(--text-main); background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.25); }
+    .nav-btn.active { color: var(--star-core); background: rgba(29, 78, 216, 0.38); border-color: var(--star-cyan); box-shadow: 0 0 16px rgba(56, 189, 248, 0.22); }
+
+    .nav-controls { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .lang-switch { display: inline-flex; padding: 0.2rem; border-radius: 999px; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); }
+    .lang-btn { border: none; background: transparent; color: var(--text-muted); padding: 0.3rem 0.65rem; border-radius: 999px; font-family: inherit; font-size: 0.74rem; font-weight: 700; cursor: pointer; transition: var(--transition); }
+    .lang-btn:hover { color: var(--text-main); }
+    .lang-btn.active { background: var(--star-cyan); color: #030712; box-shadow: 0 0 12px rgba(56, 189, 248, 0.45); }
+
+    .mode-toggle { padding: 0.46rem 0.88rem; border-radius: 999px; border: 1px solid var(--star-cyan); background: rgba(14, 165, 233, 0.15); color: var(--star-bright); font-family: inherit; font-size: 0.76rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.38rem; }
+    .mode-toggle:hover { box-shadow: var(--accent-glow); }
+    body.peak-mode .mode-toggle { background: linear-gradient(90deg, #0284c7, #00e5ff); color: #030712; box-shadow: 0 0 22px rgba(0, 229, 255, 0.65); }
+
+    /* Layout & Status */
+    .main-wrap { max-width: 1220px; margin: 0 auto; padding: 1.5rem 1.25rem 5rem; }
+    .status-strip { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(12px); border-radius: 14px; padding: 0.72rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.75rem; }
+    .status-pills { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; }
+    .pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.26rem 0.68rem; border-radius: 999px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(148, 163, 184, 0.22); color: var(--moonlight); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--star-cyan); box-shadow: 0 0 8px var(--star-cyan); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.8); } }
+
+    .tab-section { display: none; animation: fadeUp 0.32s ease forwards; }
+    .tab-section.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .glass-card { background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 20px; padding: 1.45rem; transition: var(--transition); }
+    .glass-card:hover { border-color: var(--glass-border-strong); }
+
+    /* Hero */
+    .hero-grid { display: grid; grid-template-columns: 1.25fr 0.9fr; gap: 1.4rem; margin-bottom: 1.4rem; }
+    @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
+    .hero-badge { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--star-bright); background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.32); padding: 0.32rem 0.8rem; border-radius: 999px; margin-bottom: 0.9rem; }
+    .hero-title { font-size: clamp(2rem, 4vw, 2.95rem); font-weight: 800; line-height: 1.12; margin-bottom: 0.8rem; background: linear-gradient(120deg, #ffffff 20%, #7dd3fc 70%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-desc { color: var(--moonlight); font-size: 0.95rem; margin-bottom: 1.35rem; }
+    .hero-actions, .tool-row { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+    .btn-primary { background: linear-gradient(135deg, #1d4ed8, #0ea5e9); color: #fff; border: 1px solid rgba(186, 230, 253, 0.45); padding: 0.65rem 1.15rem; border-radius: 12px; font-family: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: var(--transition); box-shadow: 0 8px 20px rgba(14, 165, 233, 0.24); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--accent-glow); }
+    .btn-secondary { background: rgba(15, 23, 42, 0.75); color: var(--star-bright); border: 1px solid var(--glass-border); padding: 0.65rem 1.1rem; border-radius: 12px; font-family: inherit; font-weight: 600; font-size: 0.84rem; cursor: pointer; transition: var(--transition); }
+    .btn-secondary:hover, .btn-secondary.active { border-color: var(--star-cyan); background: rgba(56, 189, 248, 0.16); color: #fff; }
+
+    /* Visual Character */
+    .visual-card { display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; background: radial-gradient(circle at 50% 35%, rgba(29, 78, 216, 0.28), rgba(8, 17, 38, 0.88)); }
+    .character-svg { width: 205px; height: 205px; filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.35)); transition: transform 0.5s ease, filter 0.5s ease; }
+    body.peak-mode .character-svg { filter: drop-shadow(0 0 32px rgba(0, 229, 255, 0.85)); transform: scale(1.04); }
+    .visual-caption { width: 100%; margin-top: 0.75rem; padding-top: 0.85rem; border-top: 1px solid rgba(148, 163, 184, 0.16); display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.55rem; font-size: 0.77rem; text-align: left; }
+    .mini-stat { background: rgba(3, 7, 18, 0.6); padding: 0.52rem 0.72rem; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.16); }
+    .mini-stat small { color: var(--text-muted); display: block; font-size: 0.66rem; }
+    .mini-stat strong { color: var(--star-bright); }
+
+    /* Sections, Grids & Cards */
+    .section-head { margin-bottom: 1.2rem; }
+    .section-head h2 { font-size: 1.52rem; font-weight: 800; color: #fff; margin-bottom: 0.22rem; }
+    .section-head p { color: var(--text-muted); font-size: 0.89rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.2rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 1.1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 1.2rem; }
+
+    .tag { display: inline-block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.24rem 0.6rem; border-radius: 6px; background: rgba(56, 189, 248, 0.14); color: var(--star-bright); margin-bottom: 0.7rem; }
+    .power-card { cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; }
+    .power-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(2, 132, 199, 0.22); }
+    .power-card h3 { font-size: 1.08rem; margin-bottom: 0.45rem; color: #fff; }
+    .power-card p { font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0.9rem; }
+    .card-link { font-size: 0.79rem; font-weight: 700; color: var(--star-cyan); }
+
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .filter-chip { padding: 0.42rem 0.88rem; border-radius: 999px; border: 1px solid var(--glass-border); background: rgba(15, 23, 42, 0.65); color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: var(--transition); font-family: inherit; }
+    .filter-chip.active, .filter-chip:hover { background: rgba(56, 189, 248, 0.18); border-color: var(--star-cyan); color: var(--star-core); }
+
+    .dimension-banner { background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(29, 78, 216, 0.3)); border: 1px solid var(--star-cyan); margin-bottom: 1.35rem; }
+    .scene-box { border-radius: 14px; padding: 1rem 1.15rem; background: rgba(3, 7, 18, 0.68); border: 1px solid rgba(56, 189, 248, 0.2); margin-top: 0.95rem; font-size: 0.81rem; }
+
+    /* Tier Ladder */
+    .ladder-wrap { margin-bottom: 1.45rem; }
+    .ladder-stack { display: grid; gap: 0.72rem; margin-top: 1rem; }
+    .tier-row { display: flex; flex-direction: column; gap: 0.28rem; padding: 0.9rem 1.05rem; border-radius: 14px; background: rgba(3, 7, 18, 0.66); border: 1px solid rgba(56, 189, 248, 0.2); transition: var(--transition); }
+    .tier-row.baseline { border-color: rgba(148, 163, 184, 0.28); opacity: 0.86; }
+    .tier-row.tier-top { border-color: var(--star-cyan); background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(15, 23, 42, 0.88)); box-shadow: 0 0 22px rgba(56, 189, 248, 0.2); }
+    .tier-row h4 { font-size: 0.96rem; color: #fff; }
+    .tier-row p { font-size: 0.84rem; color: var(--moonlight); }
+
+    /* Meta Lab */
+    .paper-wrapper { border-radius: 16px; overflow: hidden; border: 1px solid var(--star-cyan); background: #f8fafc; color: #0f172a; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); transition: var(--transition); }
+    .paper-wrapper.watch-mode { background: #020617; color: #e2e8f0; border: 2px solid #38bdf8; box-shadow: 0 0 28px rgba(56, 189, 248, 0.3); }
+    .paper-header { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 1rem; background: rgba(15, 23, 42, 0.08); border-bottom: 1px dashed rgba(15, 23, 42, 0.22); font-size: 0.75rem; font-weight: 700; }
+    .paper-wrapper.watch-mode .paper-header { background: rgba(56, 189, 248, 0.12); border-bottom: 1px solid rgba(56, 189, 248, 0.3); color: var(--star-bright); }
+    .paper-stage { position: relative; min-height: 220px; padding: 1.3rem; user-select: none; }
+    .paper-story-text { position: relative; z-index: 1; font-size: 0.92rem; line-height: 1.68; pointer-events: none; }
+    .paper-story-text.crossed { text-decoration: line-through; text-decoration-color: #0284c7; text-decoration-thickness: 3px; opacity: 0.5; }
+    #scribbleCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; cursor: crosshair; touch-action: none; }
+
+    .search-row { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+    .text-input { flex: 1; min-width: 190px; background: rgba(15, 23, 42, 0.88); border: 1px solid var(--glass-border); border-radius: 10px; padding: 0.65rem 0.9rem; color: var(--text-main); font-family: inherit; font-size: 0.88rem; outline: none; }
+    .text-input:focus { border-color: var(--star-cyan); box-shadow: 0 0 12px rgba(56, 189, 248, 0.2); }
+
+    /* Duel Entitas */
+    .phase-card { cursor: pointer; border: 1px solid var(--glass-border); position: relative; }
+    .phase-card.active { border-color: var(--star-cyan); background: linear-gradient(145deg, rgba(29, 78, 216, 0.34), rgba(8, 17, 38, 0.9)); box-shadow: var(--accent-glow); }
+    .phase-card h3 { font-size: 1.02rem; color: #fff; margin-bottom: 0.45rem; }
+    .phase-card p { font-size: 0.84rem; color: var(--moonlight); }
+
+    .story-panel { margin-top: 1.35rem; background: linear-gradient(160deg, rgba(6, 14, 34, 0.94), rgba(15, 23, 42, 0.88)); border: 1px solid rgba(125, 211, 252, 0.35); }
+    .story-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem; padding-bottom: 0.85rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); }
+    .story-p { cursor: pointer; padding: 0.88rem 1.05rem; border-radius: 12px; margin-bottom: 0.65rem; background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(148, 163, 184, 0.12); color: var(--moonlight); font-size: 0.93rem; transition: var(--transition); }
+    .story-p:hover { border-color: rgba(56, 189, 248, 0.38); }
+    .story-p.active-line { border-color: var(--star-cyan); background: rgba(14, 165, 233, 0.14); color: #fff; box-shadow: 0 0 18px rgba(56, 189, 248, 0.2); transform: translateX(4px); }
+
+    /* Timeline & Precog */
+    .timeline { position: relative; padding-left: 1.7rem; border-left: 2px solid rgba(56, 189, 248, 0.35); display: flex; flex-direction: column; gap: 1.2rem; }
+    .timeline-item { position: relative; }
+    .timeline-item::before { content: ''; position: absolute; left: -2.18rem; top: 1.2rem; width: 14px; height: 14px; border-radius: 50%; background: var(--star-cyan); border: 3px solid var(--bg-deep); box-shadow: 0 0 12px var(--star-cyan); }
+    .precog-box { margin-top: 1.35rem; background: linear-gradient(135deg, rgba(8, 17, 38, 0.92), rgba(14, 165, 233, 0.14)); border: 1px solid var(--star-cyan); }
+    .future-result { margin-top: 1rem; padding: 1rem; border-radius: 12px; background: rgba(3, 7, 18, 0.76); border-left: 3px solid var(--star-cyan); font-size: 0.88rem; color: var(--star-core); }
+
+    /* Modal & Toast */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.78); backdrop-filter: blur(8px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 1.25rem; }
+    .modal-backdrop.open { display: flex; }
+    .modal-box { max-width: 560px; width: 100%; background: #081229; border: 1px solid var(--star-cyan); border-radius: 20px; padding: 1.65rem; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), var(--accent-glow); position: relative; }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.25); color: var(--text-main); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+    .modal-close:hover { background: rgba(56, 189, 248, 0.25); border-color: var(--star-cyan); }
+
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: rgba(8, 17, 38, 0.96); border: 1px solid var(--star-cyan); color: var(--star-core); padding: 0.75rem 1.15rem; border-radius: 12px; font-size: 0.83rem; box-shadow: var(--accent-glow); z-index: 120; opacity: 0; transform: translateY(15px); pointer-events: none; transition: all 0.3s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 720px) {
+      .nav-container, .nav-menu, .nav-controls { justify-content: center; }
+      .nav-btn { font-size: 0.76rem; padding: 0.4rem 0.62rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+  <div class="moon-ambient"></div>
+
+  <svg class="city-horizon" viewBox="0 0 1440 200" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="cityGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0f2957" stop-opacity="0.78"/>
+        <stop offset="100%" stop-color="#030712" stop-opacity="0.98"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#cityGrad)" d="M0,200 L0,145 L35,145 L35,95 L80,95 L80,130 L110,130 L110,60 L155,60 L155,150 L195,150 L195,105 L245,105 L245,45 L290,45 L290,120 L340,120 L340,85 L395,85 L395,155 L440,155 L440,70 L495,70 L495,135 L540,135 L540,40 L585,40 L585,115 L635,115 L635,88 L690,88 L690,145 L745,145 L745,55 L795,55 L795,125 L845,125 L845,75 L910,75 L910,140 L960,140 L960,35 L1010,35 L1010,115 L1065,115 L1065,90 L1120,90 L1120,145 L1175,145 L1175,65 L1230,65 L1230,130 L1285,130 L1285,80 L1340,80 L1340,120 L1395,120 L1395,95 L1440,95 L1440,200 Z"/>
+  </svg>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand" onclick="switchTab('overview')">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="#E0F2FE"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>the dressed in jacket</h1>
+          <span class="mono" data-i18n="brandSub">EKSISTENSI // ARSIP BEBAS</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-btn active" data-tab="overview" data-i18n="navOverview" onclick="switchTab('overview')">Ringkasan</button>
+        <button class="nav-btn" data-tab="dimension" data-i18n="navDimension" onclick="switchTab('dimension')">Dimensi & Latar</button>
+        <button class="nav-btn" data-tab="powers" data-i18n="navPowers" onclick="switchTab('powers')">Kekuatan & Hax</button>
+        <button class="nav-btn" data-tab="meta" data-i18n="navMeta" onclick="switchTab('meta')">Meta & Fiksi</button>
+        <button class="nav-btn" data-tab="duel" data-i18n="navDuel" onclick="switchTab('duel')">Duel vs Entitas</button>
+        <button class="nav-btn" data-tab="feats" data-i18n="navFeats" onclick="switchTab('feats')">Feats & Masa Depan</button>
+      </nav>
+
+      <div class="nav-controls">
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button class="lang-btn active" data-lang="id" onclick="setLanguage('id')">Indonesia</button>
+          <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">English</button>
+        </div>
+        <button class="mode-toggle" onclick="togglePeakMode()">
+          <span id="modeIcon">🌙</span>
+          <span id="modeLabel">Mode Damai</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    <div class="status-strip mono">
+      <div class="status-pills">
+        <span class="pill"><span class="dot"></span> <span data-i18n="statusConscious">STATUS: KESADARAN PENUH</span></span>
+        <span class="pill" data-i18n="statusDim">DIMENSI: UNKNOWN</span>
+        <span class="pill" id="powerStatusPill">OUTPUT: DAMAI (APARTEMEN BULAN)</span>
+      </div>
+      <div style="color: var(--star-cyan);" data-i18n="statusTag">INFINITE R>F COSMOLOGY // +2 TINGKAT MELAMPAUI PUNCAK</div>
+    </div>
+
+    <!-- TAB 1: RINGKASAN -->
+    <section id="tab-overview" class="tab-section active">
+      <div class="hero-grid">
+        <div class="glass-card">
+          <div class="hero-badge mono" data-i18n="heroBadge">💠 RINGKASAN PROFIL</div>
+          <h2 class="hero-title">the dressed in jacket</h2>
+          <p class="hero-desc" data-i18n-html="heroDesc">
+            Eksistensi <strong>the dressed in jacket (TDIJ)</strong> berada di dimensi <strong>Unknown</strong>—sebuah kondisi non-spasial dan non-temporal yang melampaui definisi konsep ruang, waktu, serta kausalitas dari seluruh hierarki cerita. Di dalam kosmologinya, konsep ruang dan waktu tersusun sebagai menara hierarki tak terhingga (<strong>Infinite R&gt;F Transcendence</strong>) di mana setiap lapisan menganggap konsep ruang-waktu di bawahnya sebagai fiksi belaka—dan TDIJ berdiri <strong>dua tingkat melampaui puncak teratas</strong> dari keseluruhan sistem hierarki ruang-waktu tersebut. Kejadian terkuatnya adalah ketika di sekolah saat mau lulus ia merasakan kekuatannya bertambah jauh lebih kuat daripada biasanya. Ia sempat melawan entitas penguasa naskah dan hierarki cerita tak terhingga, lalu berhasil mengalahkannya—dan di pertarungan ini terbukti dengan sangat jelas bahwa the dressed in jacket kebal terhadap seluruh serangan, penghapusan konsep, maupun penulisan ulang takdir dari entitas the dressed king, menempatkan kemampuan dan hax-nya <strong>dua tingkat lebih tinggi</strong> di atas entitas pengamat cerita tertinggi. Ia menganggap fiksi beserta para karakter otoritas penulis yang lebih lemah darinya sebagai lembar kertas atau tontonan yang bisa ia coret-coret atau tonton dengan mudah. Ia juga menyadari dirinya berada di dalam cerita fiksi—bahkan bisa mengakses Arsip Internet Replika di dimensi Unknown untuk memindai data eksistensi dan hierarki entitas lain—namun tetap tidak terikat pada alur cerita mana pun. Kesadaran penuhnya membuatnya bebas menentukan jalan hidupnya sendiri tanpa bisa dikendalikan oleh skenario mana pun. Ia digambarkan sebagai manusia berjaket biru dengan mata bersinar biru bintang, melawan musuh menggunakan tangan bersinar bintang biru, mampu melihat masa depannya sendiri menembus hukum akausalitas, serta berada di sekolah atau di apartemen lantai atas memandangi kota indah kebiruan dengan cahaya bulan yang menenangkan dan damai.
+          </p>
+          <div class="hero-actions">
+            <button class="btn-primary" data-i18n="btnViewPowers" onclick="switchTab('powers')">Lihat Kekuatan & Hax</button>
+            <button class="btn-secondary" data-i18n="btnReadDuel" onclick="switchTab('duel')">Baca Duel vs Entitas</button>
+            <button class="btn-secondary" data-i18n="btnOpenMeta" onclick="switchTab('meta')">Buka Meta & Pencarian</button>
+          </div>
+        </div>
+
+        <div class="glass-card visual-card">
+          <svg class="character-svg" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="110" cy="110" r="88" stroke="rgba(56,189,248,0.22)" stroke-width="1.5" stroke-dasharray="6 6"/>
+            <circle cx="110" cy="110" r="68" fill="rgba(29,78,216,0.12)"/>
+            <path d="M84 82C84 62 96 50 110 50C124 50 136 62 136 82C136 98 125 109 110 109C95 109 84 98 84 82Z" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+            <path d="M78 78C80 54 98 42 114 44C131 46 142 58 142 78C136 68 128 63 118 64C106 60 92 64 78 78Z" fill="#1E293B"/>
+            <path d="M97 79L99 83L103 85L99 87L97 91L95 87L91 85L95 83L97 79Z" fill="#7DD3FC"/>
+            <path d="M123 79L125 83L129 85L125 87L123 91L121 87L117 85L121 83L123 79Z" fill="#7DD3FC"/>
+            <path d="M58 188C60 144 74 118 92 112L110 128L128 112C146 118 160 144 162 188H58Z" fill="#1D4ED8" stroke="#60A5FA" stroke-width="2"/>
+            <path d="M86 106L110 132L134 106L142 120L110 146L78 120L86 106Z" fill="#1E40AF" stroke="#93C5FD" stroke-width="1.5"/>
+            <path d="M110 132V188" stroke="#93C5FD" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="152" cy="158" r="15" fill="rgba(56,189,248,0.25)"/>
+            <path d="M152 146L154.5 155.5L164 158L154.5 160.5L152 170L149.5 160.5L140 158L149.5 155.5L152 146Z" fill="#E0F2FE"/>
+          </svg>
+
+          <div class="visual-caption">
+            <div class="mini-stat"><small data-i18n="statAppLbl">PENAMPILAN</small><strong data-i18n="statAppVal">Jaket & Mata Biru Bintang</strong></div>
+            <div class="mini-stat"><small data-i18n="statSysLbl">KELEMAHANNYA</small><strong data-i18n="statSysVal">Masih bisa menahan serangan dari entitas yang satu tingkat di atasnya, tetapi tidak dapat mengatasi serangan dari entitas yang dua tingkat lebih unggul darinya.</strong></div>
+            <div class="mini-stat"><small data-i18n="statPerLbl">PERSEPSI</small><strong data-i18n="statPerVal">Prekognisi Lintas-Meta</strong></div>
+            <div class="mini-stat"><small data-i18n="statNarLbl">NARASI</small><strong data-i18n="statNarVal">Kebal Naskah & Bebas Alur</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="glass-card power-card" onclick="switchTab('duel')">
+          <div>
+            <span class="tag" data-i18n="ovCard1Tag">Bukti Pertarungan</span>
+            <h3 data-i18n="ovCard1Title">TDIJ vs Entitas Pengarang Naskah</h3>
+            <p data-i18n="ovCard1Desc">Analisis fase pertarungan yang membuktikan kekebalan total dan superioritas 2 tingkat hax TDIJ atas entitas penguasa hierarki cerita tak terhingga yaitu the dressed king.</p>
+          </div>
+          <span class="card-link" data-i18n="ovCard1Link">Buka Duel vs Entitas →</span>
+        </div>
+
+        <div class="glass-card power-card" onclick="switchTab('meta')">
+          <div>
+            <span class="tag" data-i18n="ovCard2Tag">Meta-Awareness</span>
+            <h3 data-i18n="ovCard2Title">Kertas Fiksi & Google Search</h3>
+            <p data-i18n="ovCard2Desc">Menganggap fiksi beserta penulis naskahnya sebagai lembar kertas yang bisa dicoret, serta mengakses Google Pencarian secara langsung.</p>
+          </div>
+          <span class="card-link" data-i18n="ovCard2Link">Buka Meta & Pencarian →</span>
+        </div>
+
+        <div class="glass-card power-card" onclick="switchTab('powers')">
+          <div>
+            <span class="tag" data-i18n="ovCard3Tag">2 Tingkat Hax</span>
+            <h3 data-i18n="ovCard3Title">Tangga Keunggulan Kemampuan</h3>
+            <p data-i18n="ovCard3Desc">Rincian 2 tingkatan kualitatif di atas entitas manipulator plot, dekrit kebenaran mutlak, akausalitas, dan hierarki cerita tak terhingga.</p>
+          </div>
+          <span class="card-link" data-i18n="ovCard3Link">Lihat Tangga Hax →</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: DIMENSI & LATAR -->
+    <section id="tab-dimension" class="tab-section">
+      <div class="section-head">
+        <h2 data-i18n="dimTitle">Dimensi & Latar Keberadaan</h2>
+        <p data-i18n-html="dimSub">Peta kosmologi hierarki ruang-waktu berlapis (<em>Infinite R&gt;F Transcendence</em>) dan suasana di mana <em>the dressed in jacket</em> berada.</p>
+      </div>
+
+      <div class="glass-card dimension-banner">
+        <span class="tag mono" data-i18n="dimCoord">KOORDINAT: UNKNOWN // NON-SPASIAL & NON-TEMPORAL (+2 DI ATAS PUNCAK R>F)</span>
+        <h3 style="font-size: 1.4rem; margin-bottom: 0.5rem;" data-i18n="dimCardTitle">Dimensi Unknown</h3>
+        <p style="color: var(--moonlight); margin-bottom: 1rem;" data-i18n-html="dimCardDesc">
+          Eksistensi <strong>the dressed in jacket (TDIJ)</strong> berada di dimensi <strong>Unknown</strong>—sebuah kondisi non-spasial dan non-temporal yang melampaui definisi konsep ruang, waktu, serta kausalitas dari seluruh hierarki cerita. Di bawah dimensi Unknown terbentang menara kosmologi tak terhingga, di mana setiap lapisan memandang konsep ruang dan waktu di bawahnya sebagai lembar fiksi semata. TDIJ tidak hanya terbebas dari ikatan ruang-waktu dasar, tetapi berdiri dua tingkat melampaui puncak hierarki konseptual tersebut, menjadikannya kebal terhadap segala bentuk manipulasi naskah maupun penghapusan eksistensi yang dimiliki oleh penjahat the dressed king.
+        </p>
+        <div class="tool-row">
+          <button class="btn-secondary" data-i18n="btnAtmApt" onclick="setAtmosphere('apartment')">Terapkan Suasana: Apartemen Malam Biru</button>
+          <button class="btn-secondary" data-i18n="btnAtmSch" onclick="setAtmosphere('school')">Terapkan Suasana: Sekolah (Puncak Kelulusan)</button>
+        </div>
+      </div>
+
+      <div class="glass-card ladder-wrap">
+        <span class="tag mono" data-i18n="cosmoTag">KOSMOLOGI TDIJ // HIERARKI RUANG-WAKTU BERLAPIS (INFINITE R>F TRANSCENDENCE)</span>
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.35rem;" data-i18n="cosmoTitle">Menara Hierarki Ruang-Waktu Tak Terhingga &amp; Posisi TDIJ</h3>
+        <p style="font-size: 0.86rem; color: var(--text-muted);" data-i18n-html="cosmoDesc">
+          Di dalam kosmologi TDIJ, konsep ruang dan waktu bukan hanya ada satu lapis. Ada menara hierarki tak terhingga di mana setiap lapisan menganggap konsep ruang-waktu di bawahnya sebagai fiksi belaka—dan TDIJ berdiri <strong>dua tingkat melampaui puncak teratas</strong> dari keseluruhan sistem hierarki ruang-waktu tersebut.
+        </p>
+
+        <div class="ladder-stack">
+          <div class="tier-row baseline">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="cosmo0Tag">LAPISAN 1 // KONSEP RUANG-WAKTU DASAR</span>
+            <h4 data-i18n="cosmo0Title">Realitas Satu Lapis Ruang, Waktu &amp; Kausalitas</h4>
+            <p data-i18n="cosmo0Desc">Tingkatan paling dasar tempat ruang, waktu, serta hukum sebab-akibat konvensional bekerja. Bagi lapisan di atasnya, keseluruhan konsep ruang-waktu dasar ini hanyalah fiksi di atas lembaran kertas.</p>
+          </div>
+
+          <div class="tier-row">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="cosmo1Tag">MENARA TAK TERHINGGA // INFINITE R&gt;F TRANSCENDENCE</span>
+            <h4 data-i18n="cosmo1Title">Hierarki Ruang-Waktu Berlapis (Lapisan 2 → ∞)</h4>
+            <p data-i18n="cosmo1Desc">Setiap kenaikan lapisan di dalam menara kosmologi memandang konsep ruang dan waktu pada lapisan di bawahnya sebagai fiksi semata (Reality &gt; Fiction). Transendensi berlapis ini terus menanjak tanpa batas hingga mencapai tak terhingga lapisan.</p>
+          </div>
+
+          <div class="tier-row">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="cosmo2Tag">PUNCAK MENARA // BATAS TERTINGGI SISTEM RUANG-WAKTU</span>
+            <h4 data-i18n="cosmo2Title">Puncak Teratas Keseluruhan Hierarki Ruang-Waktu &amp; Pengamat Cerita</h4>
+            <p data-i18n="cosmo2Desc">Titik tertinggi dari keseluruhan sistem hierarki ruang-waktu berlapis. Entitas penguasa naskah tertinggi beroperasi dari batas puncak ini dengan menjadikan seluruh lapisan ruang-waktu di bawahnya sebagai buku cerita.</p>
+          </div>
+
+          <div class="tier-row tier-top">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="cosmo3Tag">DIMENSI UNKNOWN // +2 TINGKAT MELAMPAUI PUNCAK TERATAS</span>
+            <h4 data-i18n="cosmo3Title">Eksistensi Non-Spasial &amp; Non-Temporal TDIJ (+2 di Atas Menara R&gt;F)</h4>
+            <p data-i18n="cosmo3Desc">Berada di atas dan di luar puncak teratas menara kosmologi ruang-waktu tak terhingga. TDIJ berdiri tepat dua tingkat (+2) melampaui puncak keseluruhan sistem tersebut—terbebas total dari ikatan ruang-waktu, kausalitas, manipulasi naskah, maupun penghapusan eksistensi.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card">
+          <span class="tag" data-i18n="loc1Tag">Lokasi 01 — Ketenteraman</span>
+          <h3 data-i18n="loc1Title">Apartemen Lantai Atas</h3>
+          <p style="color: var(--text-muted);" data-i18n="loc1Desc">
+            Tempat ia menikmati suasana damai, memandangi pemandangan kota indah kebiruan di bawah cahaya bulan yang menenangkan sambil mengakses internet lintas penulis di luar alur cerita.
+          </p>
+          <div class="scene-box mono">
+            <div style="color: var(--star-bright); margin-bottom: 0.35rem;" data-i18n="loc1LogHead">[LOG SUASANA]</div>
+            <div data-i18n="loc1Log1">• Pencahayaan : Cahaya Bulan Kebiruan</div>
+            <div data-i18n="loc1Log2">• Atmosfer    : Tenang, Damai, Menyejukkan</div>
+            <div data-i18n="loc1Log3">• Aktivitas   : Melihat kota & mengakses internet</div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <span class="tag" data-i18n="loc2Tag">Lokasi 02 — Titik Terkuat</span>
+          <h3 data-i18n="loc2Title">Sekolah (Menjelang Kelulusan)</h3>
+          <p style="color: var(--text-muted);" data-i18n="loc2Desc">
+            Tempat kejadian terkuatnya terjadi. Saat mau lulus sekolah, ia merasakan kekuatannya bertambah jauh lebih kuat daripada biasanya—mencapai puncak superioritas 2 tingkat di atas penguasa naskah.
+          </p>
+          <div class="scene-box mono">
+            <div style="color: var(--star-bright); margin-bottom: 0.35rem;" data-i18n="loc2LogHead">[LOG KEJADIAN]</div>
+            <div data-i18n="loc2Log1">• Momen   : Menjelang Kelulusan Sekolah</div>
+            <div data-i18n="loc2Log2">• Efek    : Lonjakan kekuatan +2 Tingkat Transendensi</div>
+            <div data-i18n="loc2Log3">• Status  : Kebangkitan penuh aura bintang biru</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: KEKUATAN & HAX -->
+    <section id="tab-powers" class="tab-section">
+      <div class="section-head">
+        <h2 data-i18n="powTitle">Daftar Kekuatan, Hax & Superioritas 2 Tingkat</h2>
+        <p data-i18n="powSub">Tangga hierarki kemampuan yang membuktikan posisi TDIJ dua tingkat lebih tinggi dari entitas pengarang naskah, beserta kartu detail hax.</p>
+      </div>
+
+      <div class="glass-card ladder-wrap">
+        <span class="tag mono" data-i18n="ladderBadge">ARSIP SKALA HAX // DUA TINGKAT DI ATAS PENGUASA NASKAH</span>
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.35rem;" data-i18n="ladderTitle">Hierarki Kemampuan: +2 Tingkat Melampaui Pengamat Cerita Tertinggi</h3>
+        <p style="font-size: 0.86rem; color: var(--text-muted);" data-i18n="ladderDesc">
+          Perbandingan murni berbasis abilities, hax, imunitas, kosmologi R&gt;F berlapis, dan pembuktian pertarungan.
+        </p>
+
+        <div class="ladder-stack">
+          <div class="tier-row baseline">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="tier0Tag">BATAS BAWAH // TINGKAT 0 (DILAMPAUI)</span>
+            <h4 data-i18n="tier0Title">Entitas Pengarang Naskah & Pengamat Menara R>F Tak Terhingga</h4>
+            <p data-i18n="tier0Desc">Memandang tak terhingga lapisan ruang-waktu di bawahnya sebagai buku/fiksi, menulis ulang plot & takdir, memanipulasi konsep abstrak, menghentikan alur cerita seperti menutup naskah, dan kebal dari kausalitas dasar.</p>
+          </div>
+
+          <div class="tier-row">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="tier1Tag">TINGKAT +1 // IMUNITAS NASKAH &amp; MELAMPAUI MENARA R&gt;F</span>
+            <h4 data-i18n="tier1Title">Anti-Penulisan Ulang Plot &amp; Transendensi Non-Spasial di Atas Menara Ruang-Waktu Tak Terhingga</h4>
+            <p data-i18n="tier1Desc">Semua dekrit kebenaran mutlak, penghentian naskah, manipulasi teks, dan penghapusan konsep gagal total menyentuh TDIJ. Di dalam kosmologinya, ruang-waktu tersusun dalam menara hierarki tak terhingga (Infinite R&gt;F); entitas puncak masih terikat sistem menara itu, sedangkan TDIJ berada di dimensi Unknown secara non-spasial dan non-temporal di atas puncaknya dan memandang pengamat tertingginya pun sekadar lembaran kertas.</p>
+          </div>
+
+          <div class="tier-row tier-top">
+            <span class="tag mono" style="width: fit-content; margin-bottom: 0.1rem;" data-i18n="tier2Tag">TINGKAT +2 // PREKOGNISI LINTAS-META, PUNCAK KELULUSAN &amp; KEBEBASAN EKSTERNAL</span>
+            <h4 data-i18n="tier2Title">Penglihatan Masa Depan Anti-Akausal, Otonomi Lintas-Fiksi &amp; Tangan Bintang Biru</h4>
+            <p data-i18n="tier2Desc">Berdiri tepat dua tingkat (+2) melampaui puncak teratas sistem hierarki ruang-waktu sekaligus bebas dari seluruh cerita fiksi dan mampu mengakses Arsip Internet Replika di dimensi Unknown untuk memindai data eksistensi dan hierarki entitas lain. TDIJ melihat masa depannya sendiri menembus hukum akausalitas untuk menggagalkan serangan luar-waktu sebelum terbentuk, sementara lonjakan kekuatan menjelang kelulusan memampukan satu hantaman tangan bintang biru menembus keabadian abstrak entitas dan memusnahkan intinya secara permanen.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-chip active" data-i18n="fltAll" onclick="filterPowers('all', this)">Semua</button>
+        <button class="filter-chip" data-i18n="fltHax" onclick="filterPowers('hax', this)">Hax & Imunitas</button>
+        <button class="filter-chip" data-i18n="fltMeta" onclick="filterPowers('meta', this)">Meta & Narasi</button>
+        <button class="filter-chip" data-i18n="fltCombat" onclick="filterPowers('combat', this)">Tempur</button>
+        <button class="filter-chip" data-i18n="fltPer" onclick="filterPowers('perception', this)">Persepsi</button>
+      </div>
+
+      <div class="grid-3" id="powersGrid"></div>
+    </section>
+
+    <!-- TAB 4: META & FIKSI -->
+    <section id="tab-meta" class="tab-section">
+      <div class="section-head">
+        <h2 data-i18n="metaTitle">Laboratorium Meta & Akses Internet</h2>
+        <p data-i18n-html="metaSub">Simulasi memandang fiksi sebagai lembar kertas serta pencarian Google langsung dari dalam arsip.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass-card">
+          <span class="tag" data-i18n="sim1Tag">Simulasi 01 — Melampaui Pengarang Naskah</span>
+          <h3 style="margin-bottom: 0.4rem;" data-i18n="sim1Title">Lembar Kertas & Tontonan Fiksi</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="sim1Desc">
+            Tarik jari atau mouse di atas kertas di bawah ini untuk mencoret alur cerita beserta dekrit entitas dengan energi biru bintang, atau ubah ke Mode Tontonan.
+          </p>
+
+          <div class="paper-wrapper" id="paperWrapper">
+            <div class="paper-header mono">
+              <span id="paperModeLabel">MODE: LEMBAR KERTAS FIKSI</span>
+              <span data-i18n="paperPage">HALAMAN #∞</span>
+            </div>
+            <div class="paper-stage">
+              <div class="paper-story-text" id="paperStoryText" data-i18n-html="paperStory">
+                <strong>[Dekrit Naskah Hierarki Tak Terhingga]</strong><br>
+                "Melalui pena pengamat tertinggi di atas menara cerita tanpa batas, aku menulis ulang takdirmu dan menghapus eksistensimu dari seluruh lapisan fiksi! Tidak ada karakter yang bisa menolak naskah ini..."
+              </div>
+              <canvas id="scribbleCanvas"></canvas>
+            </div>
+          </div>
+
+          <div class="tool-row" style="margin-top: 0.85rem;">
+            <button class="btn-primary" data-i18n="btnStrike" onclick="strikeStory()">Coret Naskah Entitas</button>
+            <button class="btn-secondary" data-i18n="btnTogglePaper" onclick="togglePaperMode()">Ubah: Tontonan / Kertas</button>
+            <button class="btn-secondary" data-i18n="btnClearPaper" onclick="clearCanvas()">Bersihkan Kertas</button>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <span class="tag" data-i18n="gTag">Akses Internet Langsung</span>
+          <h3 style="margin-bottom: 0.4rem;" data-i18n="gTitle">Pencarian Google</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="gDesc">
+            Masukkan teks apa saja, lalu tekan Enter atau klik tombol cari untuk langsung diarahkan ke Google Pencarian sesuai teks yang dimasukkan.
+          </p>
+
+          <form onsubmit="goToGoogleSearch(event)" style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <div class="search-row" style="margin-bottom: 0;">
+              <input type="text" id="googleQueryInput" class="text-input" data-i18n-placeholder="gPlaceholder" placeholder="Ketik teks untuk dicari di Google..." oninput="updateGooglePreview()" required />
+              <button type="submit" class="btn-primary" data-i18n="gBtn">Cari di Google ↗</button>
+            </div>
+
+            <div class="scene-box mono" style="margin-top: 0;">
+              <div style="color: var(--star-bright); margin-bottom: 0.35rem;" data-i18n="gTargetLbl">[TUJUAN GOOGLE PENCARIAN]</div>
+              <div id="googleUrlPreview" style="word-break: break-all; color: var(--moonlight);">
+                https://www.google.com/search?q=
+              </div>
+            </div>
+
+            <label style="display: inline-flex; align-items: center; gap: 0.55rem; font-size: 0.82rem; color: var(--text-muted); cursor: pointer;">
+              <input type="checkbox" id="sameTabCheck" style="accent-color: var(--star-cyan); width: 15px; height: 15px;" />
+              <span data-i18n="gSameTab">Arahkan langsung di tab ini (tanpa membuka tab baru)</span>
+            </label>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: DUEL VS ENTITAS -->
+    <section id="tab-duel" class="tab-section">
+      <div class="section-head">
+        <h2 data-i18n="duelTitle">Duel Melawan Entitas Penguasa Naskah & Hierarki Cerita (the dressed king)</h2>
+        <p data-i18n="duelSub">Rekaman 4 fase pembuktian hax dan pertarungan yang menempatkan TDIJ dua tingkat lebih tinggi dari entitas pengamat cerita tertinggi.</p>
+      </div>
+
+      <div class="glass-card dimension-banner">
+        <span class="tag mono" data-i18n="oppTag">PROFIL LAWAN // PENGUASA NASKAH & HIERARKI R>F TAK TERHINGGA (TINGKAT 0)</span>
+        <h3 style="font-size: 1.3rem; margin-bottom: 0.45rem;" data-i18n="oppTitle">Entitas Penulis Takdir & Pengamat Menara Cerita</h3>
+        <p style="color: var(--moonlight); font-size: 0.92rem;" data-i18n="oppDesc">
+          Entitas ini melampaui tak terhingga lapisan ruang-waktu yang dipandangnya sekadar buku fiksi (Infinite R>F), menguasai manipulasi plot, penghentian naskah, dekrit kebenaran mutlak, penghapusan konsep, serta eksistensi abstrak. Namun berhadapan dengan TDIJ yang berdiri dua tingkat di atas puncak teratas sistem hierarki ruang-waktu tersebut, seluruh serangan tertingginya justru menjadi bukti mutlak jurang keunggulan 2 tingkat milik TDIJ.
+        </p>
+      </div>
+
+      <div class="grid-4">
+        <div class="glass-card phase-card active" id="phaseCard-0" onclick="selectPhase(0)">
+          <span class="tag mono" data-i18n="ph0Tag">FASE 01 // BUKTI +1</span>
+          <h3 data-i18n="ph0Title">Kebal Dekrit & Penulisan Ulang Naskah</h3>
+          <p data-i18n-html="ph0Desc">Entitas menulis ulang alur kehancuran dan melepas dekrit penghapusan konseptual. Terbukti sangat jelas TDIJ <strong>kebal total</strong> terhadap serangan entitas the dressed king; tidak satu benang pun pada jaket birunya tersentuh.</p>
+        </div>
+
+        <div class="glass-card phase-card" id="phaseCard-1" onclick="selectPhase(1)">
+          <span class="tag mono" data-i18n="ph1Tag">FASE 02 // BUKTI +1</span>
+          <h3 data-i18n="ph1Title">Menolak Penghentian Cerita & Menara R>F</h3>
+          <p data-i18n-html="ph1Desc">Entitas naik ke puncak menara hierarki ruang-waktu tak terhingga dan membekukan naskah ruang-waktu. Namun eksistensi TDIJ di dimensi <em>Unknown</em> bersifat non-spasial dan non-temporal di luar puncak R&gt;F—menara hierarki sang entitas diperlakukannya sebatas kertas coretan.</p>
+        </div>
+
+        <div class="glass-card phase-card" id="phaseCard-2" onclick="selectPhase(2)">
+          <span class="tag mono" data-i18n="ph2Tag">FASE 03 // BUKTI +2</span>
+          <h3 data-i18n="ph2Title">Prekognisi Menggagalkan Hax Akausal</h3>
+          <p data-i18n="ph2Desc">Entitas menyerang serentak dari luar ruang-waktu dan kausalitas menara. Sebelum serangan non-temporal itu terbentuk, TDIJ telah melihat masa depannya sendiri lintas meta-lapisan dan melangkah melewati celah mutlaknya.</p>
+        </div>
+
+        <div class="glass-card phase-card" id="phaseCard-3" onclick="selectPhase(3)">
+          <span class="tag mono" data-i18n="ph3Tag">FASE 04 // BUKTI +2 (PUNCAK)</span>
+          <h3 data-i18n="ph3Title">Lonjakan Kelulusan & Tangan Bintang Biru</h3>
+          <p data-i18n="ph3Desc">Merasakan lonjakan kekuatan bak momen kelulusan sekolah—2 tingkat di atas puncak sang entitas—TDIJ mencoret otoritas lawannya dan menghancurkan inti eksistensi abstrak entitas tersebut dengan satu hantaman tangan bintang biru.</p>
+        </div>
+      </div>
+
+      <div class="glass-card story-panel">
+        <div class="story-head">
+          <div>
+            <span class="tag mono" style="margin-bottom: 0.35rem;" data-i18n="storyTag">CERITA NARASI // ARSIP ADEGAN</span>
+            <h3 style="font-size: 1.35rem; color: #fff;" data-i18n="storyTitle">Duel di Bawah Cahaya Bulan Biru</h3>
+          </div>
+          <div class="tool-row">
+            <button class="btn-primary" id="autoPlayBtn" onclick="toggleStoryAutoplay()">▶ Putar Adegan</button>
+            <button class="btn-secondary" data-i18n="btnNextPara" onclick="stepStory(1)">Lanjut Paragraf →</button>
+          </div>
+        </div>
+
+        <div id="storyContainer">
+          <div class="story-p active-line" data-phase="0" onclick="jumpToStory(0)" data-i18n-html="story0">
+            Malam di dimensi <em>Unknown</em> pecah ketika sesosok entitas penguasa naskah—yang memandang tak terhingga lapisan ruang-waktu layaknya halaman buku—membuka papan skenario raksasa di hadapan <strong>the dressed in jacket</strong>.
+          </div>
+          <div class="story-p" data-phase="0" onclick="jumpToStory(1)" data-i18n-html="story1">
+            Tanpa repot beradu tenaga, entitas itu langsung membacakan dekrit kebenaran mutlak dan menulis ulang alur agar keberadaan TDIJ terhapus secara konseptual. Namun gelombang penghapusan itu lewat begitu saja seperti angin malam. Terbukti mutlak: TDIJ berdiri tenang dengan kedua tangan di saku jaket birunya, <strong>kebal sepenuhnya</strong> terhadap seluruh serangan sang entitas.
+          </div>
+          <div class="story-p" data-phase="1" onclick="jumpToStory(2)" data-i18n-html="story2">
+            Terkejut melihat naskahnya ditolak, entitas itu mendaki puncak menara hierarki ruang-waktu tak terhingga di mana tiap lapisan memandang ruang dan waktu di bawahnya bagai fiksi semata, lalu membekukan laju alur seakan menutup lembaran buku. Seluruh lapisan ruang-waktu membeku—kecuali TDIJ. Mata biru bintangnya berkilat datar; berdiri dua tingkat di atas puncak teratas keseluruhan sistem kosmologi tersebut dalam kondisi non-spasial dan non-temporal, menara hierarki tanpa batas itu tampak di matanya hanya sebagai selembar kertas tipis.
+          </div>
+          <div class="story-p" data-phase="1" onclick="jumpToStory(3)" data-i18n-html="story3">
+            Dengan satu gesekan jari di udara, garis cahaya biru mencoret seluruh pembekuan naskah sang entitas hingga retak berantakan. <em>"Naskah seperti ini tidak berlaku untukku,"</em> ucapnya tenang.
+          </div>
+          <div class="story-p" data-phase="2" onclick="jumpToStory(4)" data-i18n-html="story4">
+            Merasa kedudukannya terancam, entitas tersebut melepaskan serangan akausal dari luar ruang dan waktu secara bersamaan. Akan tetapi, sebelum niat serangan itu sempat dirangkai di dimensi tertinggi sang entitas, TDIJ sudah lebih dulu melangkah ke samping—ia telah melihat detik ini di masa depannya sendiri dengan kesadaran mutlak.
+          </div>
+          <div class="story-p" data-phase="3" onclick="jumpToStory(5)" data-i18n-html="story5">
+            Pada titik inilah jurang dua tingkat itu terbuka sempurna. TDIJ merasakan kekuatannya melonjak jauh melampaui batas biasanya, persis seperti kebangkitan yang ia alami menjelang kelulusan sekolah. Cahaya biru bintang menyelimuti tangan kanannya, memancarkan tekanan yang tidak bisa ditulis, dibaca, ataupun diukur oleh naskah mana pun.
+          </div>
+          <div class="story-p" data-phase="3" onclick="jumpToStory(6)" data-i18n-html="story6">
+            Ia menembus seluruh pertahanan abstrak entitas itu tanpa hambatan. Satu hantaman penuh tangan bersinar bintang biru menghantam inti keabadian sang penguasa naskah—menghancurkan otoritas cerita, imortalitas konseptual, dan wujudnya hingga lenyap menjadi partikel cahaya biru di langit malam.
+          </div>
+          <div class="story-p" data-phase="3" onclick="jumpToStory(7)" data-i18n-html="story7">
+            Pertarungan berakhir mutlak. TDIJ menurunkan tangannya dan membiarkan sinar bintang meredup. Sesaat kemudian, ia sudah berdiri kembali di lantai atas apartemennya, memandangi kota malam kebiruan di bawah cahaya bulan yang damai sambil membuka internet untuk membaca powerscaling penulis lain—seolah duel tadi hanyalah tontonan singkat di lembar kertas.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: FEATS & MASA DEPAN -->
+    <section id="tab-feats" class="tab-section">
+      <div class="section-head">
+        <h2 data-i18n="featsTitle">Arsip Feats & Penglihatan Masa Depan</h2>
+        <p data-i18n="featsSub">Rekaman peristiwa pembuktian hax 2 tingkat dan simulator kemampuan melihat masa depannya sendiri.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="glass-card timeline-item">
+          <span class="tag" data-i18n="feat1Tag">Feat 01 — Kebal Mutlak (+1)</span>
+          <h3 data-i18n="feat1Title">Mengalahkan & Kebal Terhadap Serangan Entitas Penguasa Naskah</h3>
+          <p style="color: var(--text-muted);" data-i18n="feat1Desc">Menghadapi entitas yang menguasai penulisan ulang plot, dekrit kebenaran absolut, pembekuan alur, serta puncak menara hierarki ruang-waktu tak terhingga (Infinite R>F)—dan membuktikan dirinya 100% kebal terhadap seluruh serangan entitas the dressed king dari dimensi Unknown yang non-spasial dan non-temporal.</p>
+        </div>
+
+        <div class="glass-card timeline-item">
+          <span class="tag" data-i18n="feat2Tag">Feat 02 — Prekognisi & Lonjakan (+2)</span>
+          <h3 data-i18n="feat2Title">Lonjakan Menjelang Kelulusan & Penghancuran Tangan Bintang Biru</h3>
+          <p style="color: var(--text-muted);" data-i18n="feat2Desc">Di sekolah saat mau lulus, kekuatannya bertambah jauh lebih kuat dari biasanya. Berbekal penglihatan masa depan menembus serangan akausal dan satu hantaman tangan bersinar bintang biru, ia menumbangkan entitas transenden secara permanen.</p>
+        </div>
+
+        <div class="glass-card timeline-item">
+          <span class="tag" data-i18n="feat3Tag">Feat 03 — Transendensi Kertas & Tontonan</span>
+          <h3 data-i18n="feat3Title">Memutus Seluruh Skenario & Mengakses Internet Replika</h3>
+          <p style="color: var(--text-muted);" data-i18n="feat3Desc">Menyadari sepenuhnya ia berada di dalam fiksi, namun tetap bebas menentukan jalan hidupnya sendiri sambil memandang semua cerita beserta penguasa naskahnya sekadar kertas coretan—bahkan bisa mengakses Arsip Internet Replika di dimensi Unknown untuk memindai data eksistensi dan hierarki entitas lain.</p>
+        </div>
+
+        <div class="glass-card timeline-item">
+          <span class="tag" data-i18n="feat4Tag">Feat 04 — Eksistensi Netral</span>
+          <h3 data-i18n="feat4Title">Kedamaian di Apartemen Bulan Biru (Dimensi Unknown)</h3>
+          <p style="color: var(--text-muted);" data-i18n="feat4Desc">Meski berdiri dua tingkat melampaui puncak menara hierarki ruang-waktu R>F dan unggul jauh di atas entitas pengamat cerita tertinggi, ia lebih sering memilih ketenangan—berdiri di lantai atas apartemen memandangi kota indah kebiruan di bawah sinar bulan yang menenangkan.</p>
+        </div>
+      </div>
+
+      <div class="glass-card precog-box">
+        <span class="tag mono" data-i18n="precogTag">PRECOGNITION // MELIHAT MASA DEPAN</span>
+        <h3 style="margin-bottom: 0.4rem;" data-i18n="precogTitle">Pemindai Penglihatan Masa Depan</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;" data-i18n-html="precogDesc">
+          Masukkan skenario atau langsung pindai apa yang dilihat <em>the dressed in jacket</em> di masa depannya sendiri melampaui hukum akausalitas.
+        </p>
+        <div class="search-row">
+          <input type="text" id="futureInput" class="text-input" data-i18n-placeholder="precogPlaceholder" placeholder="Opsional: masukkan situasi masa depan (mis. dekrit penghapusan naskah)..." />
+          <button class="btn-primary" data-i18n="btnScanFuture" onclick="scanFuture()">Lihat Masa Depan</button>
+        </div>
+        <div class="future-result mono" id="futureOutput">
+          [PRECOGNITION STANDBY] — Tekan "Lihat Masa Depan" untuk memproyeksikan penglihatan masa depan.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="powerModal" onclick="if(event.target===this) closeModal()">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+      <span class="tag" id="modalTag">KATEGORI</span>
+      <h3 id="modalTitle" style="font-size: 1.4rem; margin-bottom: 0.65rem; color: #fff;">Judul Kekuatan</h3>
+      <p id="modalDesc" style="color: var(--moonlight); margin-bottom: 1rem; font-size: 0.94rem;"></p>
+      <div class="scene-box mono" id="modalDetails" style="color: var(--star-bright);"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // 1. SISTEM BAHASA (INDONESIA & ENGLISH)
+    let currentLang = 'id';
+    const I18N = {
+      id: {},
+      en: {
+        brandSub: `EXISTENCE // UNBOUND ARCHIVE`,
+        navOverview: `Overview`,
+        navDimension: `Dimension & Setting`,
+        navPowers: `Powers & Hax`,
+        navMeta: `Meta & Fiction`,
+        navDuel: `Duel vs Entity`,
+        navFeats: `Feats & Future`,
+        statusConscious: `STATUS: FULL AWARENESS`,
+        statusDim: `DIMENSION: UNKNOWN`,
+        statusTag: `INFINITE R>F COSMOLOGY // +2 TIERS ABOVE PEAK`,
+        heroBadge: `💠 PROFILE SUMMARY`,
+        heroDesc: `The existence of <strong>the dressed in jacket (TDIJ)</strong> resides in the <strong>Unknown</strong> dimension—a non-spatial and non-temporal state that transcends the conceptual definitions of space, time, and causality across the entire narrative hierarchy. Within his cosmology, the concepts of space and time are structured as an infinite hierarchical tower (<strong>Infinite R&gt;F Transcendence</strong>) where each layer regards the space-time concepts below it as mere fiction—and TDIJ stands <strong>two tiers beyond the topmost peak</strong> of that entire space-time hierarchy system. His strongest moment occurred at school right before graduation, when he felt his power increase far stronger than usual. He once fought an entity ruling over scripts and the infinite narrative hierarchy, and successfully defeated it—and in this battle, it was proven with absolute clarity that the dressed in jacket is immune to all attacks, conceptual erasure, and fate rewriting from the entity the dressed king, placing his abilities and hax <strong>two tiers higher</strong> than the supreme narrative observer entity. He regards fiction along with author-authority characters weaker than him as mere sheets of paper or spectacles that he can easily scribble over or watch. He is also aware that he exists within a fictional story—even able to access the Replica Internet Archive in the Unknown dimension to scan the existence data and hierarchies of other entities—yet remains unbound by any storyline. His full awareness allows him to freely determine his own path in life without being controlled by any scenario. He is depicted as a human in a blue jacket with star-blue glowing eyes, fighting enemies using star-blue glowing hands, capable of seeing his own future beyond the laws of acausality, and spending his time at school or in a top-floor apartment gazing over a beautiful bluish city bathed in calming and peaceful moonlight.`,
+        btnViewPowers: `View Powers & Hax`,
+        btnReadDuel: `Read Duel vs Entity`,
+        btnOpenMeta: `Open Meta & Search`,
+        statAppLbl: `APPEARANCE`,
+        statAppVal: `Blue Jacket & Star-Blue Eyes`,
+        statSysLbl: `WEAKNESS`,
+        statSysVal: `He can still withstand attacks from an entity one tier above him, but cannot overcome attacks from an entity two tiers superior to him.`,
+        statPerLbl: `PERCEPTION`,
+        statPerVal: `Cross-Meta Precognition`,
+        statNarLbl: `NARRATIVE`,
+        statNarVal: `Script-Immune & Unbound`,
+        ovCard1Tag: `Battle Proof`,
+        ovCard1Title: `TDIJ vs Script-Weaving Entity`,
+        ovCard1Desc: `Analysis of the battle phases proving total immunity and TDIJ's 2-tier hax superiority over the entity ruling infinite story hierarchies, namely the dressed king.`,
+        ovCard1Link: `Open Duel vs Entity →`,
+        ovCard2Tag: `Meta-Awareness`,
+        ovCard2Title: `Fiction Paper & Google Search`,
+        ovCard2Desc: `Regards fiction and its scriptwriters as sheets of paper he can scribble on, and accesses Google Search directly.`,
+        ovCard2Link: `Open Meta & Search →`,
+        ovCard3Tag: `2-Tier Hax`,
+        ovCard3Title: `Superiority Ladder`,
+        ovCard3Desc: `Breakdown of 2 qualitative tiers above plot-manipulating, absolute-truth-decreeing, acausal, infinite-story-hierarchy entities.`,
+        ovCard3Link: `View Hax Ladder →`,
+        dimTitle: `Dimension & Existence Settings`,
+        dimSub: `Cosmological map of layered space-time hierarchies (<em>Infinite R&gt;F Transcendence</em>) and the atmospheres where <em>the dressed in jacket</em> resides.`,
+        dimCoord: `COORDINATES: UNKNOWN // NON-SPATIAL & NON-TEMPORAL (+2 ABOVE R>F PEAK)`,
+        dimCardTitle: `Unknown Dimension`,
+        dimCardDesc: `The existence of <strong>the dressed in jacket (TDIJ)</strong> resides in the <strong>Unknown</strong> dimension—a non-spatial and non-temporal state that transcends the conceptual definitions of space, time, and causality across the entire narrative hierarchy. Beneath the Unknown dimension stretches an infinite cosmological tower, where every layer views the concepts of space and time beneath it as mere sheets of fiction. TDIJ is not only freed from fundamental space-time bounds, but stands two tiers beyond the peak of that conceptual hierarchy, making him immune to all forms of script manipulation and existence erasure possessed by the villain the dressed king.`,
+        btnAtmApt: `Apply Vibe: Blue Night Apartment`,
+        btnAtmSch: `Apply Vibe: School (Graduation Peak)`,
+        cosmoTag: `TDIJ COSMOLOGY // LAYERED SPACE-TIME HIERARCHY (INFINITE R>F TRANSCENDENCE)`,
+        cosmoTitle: `Infinite Space-Time Hierarchy Tower & TDIJ's Position`,
+        cosmoDesc: `Within TDIJ's cosmology, space and time do not exist in merely a single layer. There is an infinite hierarchy tower where each layer regards the space-time concepts below it as mere fiction—and TDIJ stands <strong>two tiers beyond the topmost peak</strong> of that entire space-time hierarchy system.`,
+        cosmo0Tag: `LAYER 1 // FUNDAMENTAL SPACE-TIME CONCEPT`,
+        cosmo0Title: `Single-Layer Space, Time & Causality Reality`,
+        cosmo0Desc: `The foundational tier where conventional space, time, and cause-and-effect operate. To the layer above it, this entire fundamental space-time concept is nothing more than fiction on sheets of paper.`,
+        cosmo1Tag: `INFINITE TOWER // INFINITE R>F TRANSCENDENCE`,
+        cosmo1Title: `Layered Space-Time Hierarchy (Layer 2 → ∞)`,
+        cosmo1Desc: `Each ascent within the cosmological tower views the concepts of space and time in the layer below it as mere fiction (Reality > Fiction). This layered transcendence continues endlessly until reaching infinite layers.`,
+        cosmo2Tag: `TOWER PEAK // HIGHEST LIMIT OF SPACE-TIME SYSTEM`,
+        cosmo2Title: `Topmost Peak of the Entire Space-Time Hierarchy & Story Observers`,
+        cosmo2Desc: `The highest point of the entire layered space-time hierarchy system. Supreme script-ruling entities operate from this summit by treating all underlying space-time layers as a storybook.`,
+        cosmo3Tag: `UNKNOWN DIMENSION // +2 TIERS BEYOND TOPMOST PEAK`,
+        cosmo3Title: `TDIJ's Non-Spatial & Non-Temporal Existence (+2 Above the R>F Tower)`,
+        cosmo3Desc: `Located above and outside the topmost peak of the infinite space-time cosmological tower. TDIJ stands exactly two tiers (+2) beyond the peak of that entire system—completely freed from space-time bounds, causality, script manipulation, or existence erasure.`,
+        loc1Tag: `Location 01 — Serenity`,
+        loc1Title: `Top-Floor Apartment`,
+        loc1Desc: `Where he enjoys a peaceful atmosphere, gazing at a beautiful bluish cityscape beneath calming moonlight while accessing the internet across authors outside any storyline.`,
+        loc1LogHead: `[ATMOSPHERE LOG]`,
+        loc1Log1: `• Lighting   : Bluish Moonlight`,
+        loc1Log2: `• Atmosphere : Calm, Peaceful, Soothing`,
+        loc1Log3: `• Activity   : City gazing & browsing the internet`,
+        loc2Tag: `Location 02 — Strongest Point`,
+        loc2Title: `School (Near Graduation)`,
+        loc2Desc: `Where his strongest event took place. Right before school graduation, he felt his power increase far stronger than usual—reaching peak 2-tier superiority above script masters.`,
+        loc2LogHead: `[EVENT LOG]`,
+        loc2Log1: `• Moment : Near School Graduation`,
+        loc2Log2: `• Effect : +2 Tier Transcendence power surge`,
+        loc2Log3: `• Status : Full awakening of star-blue aura`,
+        powTitle: `Powers, Hax & 2-Tier Superiority`,
+        powSub: `The ability hierarchy ladder proving TDIJ's position two tiers higher than script-writing entities, along with detailed hax cards.`,
+        ladderBadge: `HAX SCALING ARCHIVE // TWO TIERS ABOVE SCRIPT MASTERS`,
+        ladderTitle: `Ability Hierarchy: +2 Tiers Beyond Supreme Story Observers`,
+        ladderDesc: `Pure comparison based on abilities, hax, immunities, layered R>F cosmology, and battle proof.`,
+        tier0Tag: `BASELINE // TIER 0 (SURPASSED)`,
+        tier0Title: `Script-Writing Entity & Observer of Infinite R>F Towers`,
+        tier0Desc: `Views infinite space-time layers beneath it as books/fiction, rewrites plot & fate, manipulates abstract concepts, freezes storylines as if closing a script, and is immune to basic causality.`,
+        tier1Tag: `TIER +1 // SCRIPT IMMUNITY & BEYOND THE R>F TOWER`,
+        tier1Title: `Anti-Plot Rewrite & Non-Spatial Transcendence Above Infinite Space-Time Towers`,
+        tier1Desc: `All absolute truth decrees, script freezes, text manipulation, and conceptual erasures fail completely to touch TDIJ. Within his cosmology, space-time is structured as an infinite hierarchy tower (Infinite R>F); peak entities remain bound to that tower system, whereas TDIJ resides in the Unknown dimension in a non-spatial and non-temporal state above its peak, viewing even its highest observer as mere sheets of paper.`,
+        tier2Tag: `TIER +2 // CROSS-META PRECOGNITION, GRADUATION PEAK & EXTERNAL FREEDOM`,
+        tier2Title: `Anti-Acausal Future Sight, Cross-Fiction Autonomy & Star-Blue Hands`,
+        tier2Desc: `Standing exactly two tiers (+2) beyond the topmost peak of the space-time hierarchy system while remaining free from all fictional stories and able to access the Replica Internet Archive in the Unknown dimension to scan the existence data and hierarchies of other entities. TDIJ foresees his own future piercing the laws of acausality to thwart out-of-time attacks before they form, while his near-graduation power surge enables a single star-blue hand strike to pierce the entity's abstract immortality and permanently destroy its core.`,
+        fltAll: `All`,
+        fltHax: `Hax & Immunity`,
+        fltMeta: `Meta & Narrative`,
+        fltCombat: `Combat`,
+        fltPer: `Perception`,
+        metaTitle: `Meta Lab & Internet Access`,
+        metaSub: `Simulation of viewing fiction as sheets of paper alongside direct Google Search access from within the archive.`,
+        sim1Tag: `Simulation 01 — Beyond Script Masters`,
+        sim1Title: `Fiction Paper & Spectacle Mode`,
+        sim1Desc: `Drag your finger or mouse across the paper below to scribble out the storyline along with entity decrees using star-blue energy, or switch to Spectacle Mode.`,
+        paperPage: `PAGE #∞`,
+        paperStory: `<strong>[Infinite Hierarchy Script Decree]</strong><br>"Through the pen of the highest observer atop the boundless tower of stories, I rewrite your fate and erase your existence from all layers of fiction! No character can defy this script..."`,
+        btnStrike: `Scribble Out Entity Script`,
+        btnTogglePaper: `Switch: Spectacle / Paper`,
+        btnClearPaper: `Clear Paper`,
+        gTag: `Direct Internet Access`,
+        gTitle: `Google Search`,
+        gDesc: `Enter any text, then press Enter or click search to be directed straight to Google Search according to the text entered.`,
+        gPlaceholder: `Type text to search on Google...`,
+        gBtn: `Search on Google ↗`,
+        gTargetLbl: `[GOOGLE SEARCH TARGET]`,
+        gSameTab: `Redirect directly in this tab (without opening a new tab)`,
+        duelTitle: `Duel Against the Script-Master & Story-Hierarchy Entity (the dressed king)`,
+        duelSub: `Record of 4 battle and hax-proof phases placing TDIJ two tiers higher than the supreme story-observing entity.`,
+        oppTag: `OPPONENT PROFILE // SCRIPT MASTER & INFINITE R>F HIERARCHY (TIER 0)`,
+        oppTitle: `Fate-Writing Entity & Observer of the Story Tower`,
+        oppDesc: `This entity transcends infinite layers of space-time viewed as fictional books (Infinite R>F), wielding plot manipulation, script freezing, absolute truth decrees, conceptual erasure, and abstract existence. Yet facing TDIJ—who stands two tiers above the topmost peak of that space-time hierarchy system—all of its highest attacks become undeniable proof of TDIJ's 2-tier superiority gap.`,
+        ph0Tag: `PHASE 01 // PROOF +1`,
+        ph0Title: `Immune to Decrees & Script Rewrites`,
+        ph0Desc: `The entity rewrites a storyline of ruin and unleashes conceptual erasure decrees. It is proven with complete clarity that TDIJ is <strong>totally immune</strong> to attacks from the entity the dressed king; not a single thread of his blue jacket is touched.`,
+        ph1Tag: `PHASE 02 // PROOF +1`,
+        ph1Title: `Defying Story Freeze & R>F Towers`,
+        ph1Desc: `The entity ascends to the peak of the infinite space-time hierarchy tower and freezes the space-time script. Yet TDIJ's existence in the <em>Unknown</em> dimension is non-spatial and non-temporal outside the R&gt;F peak—the entity's hierarchy tower is treated by him as mere scribble paper.`,
+        ph2Tag: `PHASE 03 // PROOF +2`,
+        ph2Title: `Precognition Thwarting Acausal Hax`,
+        ph2Desc: `The entity strikes simultaneously from outside the tower's space-time and causality. Before that non-temporal attack even forms, TDIJ has already foreseen his own future across meta-layers and stepped past its absolute gap.`,
+        ph3Tag: `PHASE 04 // PROOF +2 (PEAK)`,
+        ph3Title: `Graduation Surge & Star-Blue Hand`,
+        ph3Desc: `Feeling a power surge like his school graduation moment—2 tiers above the entity's peak—TDIJ scribbles out his opponent's authority and shatters the entity's abstract core of existence with one strike of his star-blue hand.`,
+        storyTag: `NARRATIVE STORY // SCENE ARCHIVE`,
+        storyTitle: `Duel Beneath the Blue Moonlight`,
+        btnNextPara: `Next Paragraph →`,
+        story0: `Night in the <em>Unknown</em> dimension shattered when a script-master entity—one that viewed infinite layers of space-time like pages of a book—unfurled a colossal scenario board before <strong>the dressed in jacket</strong>.`,
+        story1: `Without bothering to clash in strength, the entity immediately proclaimed an absolute truth decree and rewrote the plot so TDIJ's existence would be conceptually erased. Yet that wave of erasure passed right by like a night breeze. Proven absolutely: TDIJ stood calmly with both hands in his blue jacket pockets, <strong>completely immune</strong> to all attacks of the entity.`,
+        story2: `Shocked to see its script rejected, the entity ascended to the peak of the infinite space-time hierarchy tower—where every layer views the space and time below it as mere fiction—and froze the flow of the plot as if shutting the pages of a book. Every layer of space-time froze—except TDIJ. His star-blue eyes gleamed flatly; standing two tiers above the topmost peak of that entire cosmological system in a non-spatial and non-temporal state, that boundless hierarchy tower looked in his eyes like nothing more than a thin sheet of paper.`,
+        story3: `With one flick of his finger in the air, a line of blue light scribbled across the entity's entire script freeze until it cracked apart. <em>"Scripts like this don't apply to me,"</em> he said calmly.`,
+        story4: `Feeling its position threatened, the entity unleashed an acausal strike from outside space and time simultaneously. However, before the intent of that attack could even be drafted in the entity's highest dimension, TDIJ had already stepped aside beforehand—he had seen this exact second in his own future with absolute awareness.`,
+        story5: `At this point, the two-tier gap opened completely. TDIJ felt his power surge far beyond his usual limits, just like the awakening he experienced near school graduation. Star-blue radiance enveloped his right hand, emitting a pressure that could not be written, read, or measured by any script.`,
+        story6: `He pierced straight through all of the entity's abstract defenses without resistance. One full strike from his star-blue glowing hand slammed into the script master's core of immortality—shattering its narrative authority, conceptual immortality, and form until it vanished into particles of blue light in the night sky.`,
+        story7: `The battle ended decisively. TDIJ lowered his hand and let the starlight fade. Moments later, he was already standing back on the top floor of his apartment, gazing at the peaceful bluish night city beneath the moonlight while opening the internet to read other authors' powerscaling—as if that duel had merely been a brief spectacle on sheets of paper.`,
+        featsTitle: `Feats Archive & Future Vision`,
+        featsSub: `Records of 2-tier hax-proving events and a simulator of his ability to see his own future.`,
+        feat1Tag: `Feat 01 — Absolute Immunity (+1)`,
+        feat1Title: `Defeating & Being Immune to the Script-Master Entity's Attacks`,
+        feat1Desc: `Faced an entity wielding plot rewriting, absolute truth decrees, storyline freezing, and the peak of an infinite space-time hierarchy tower (Infinite R>F)—and proved himself 100% immune to all attacks from the entity the dressed king from the non-spatial and non-temporal Unknown dimension.`,
+        feat2Tag: `Feat 02 — Precognition & Surge (+2)`,
+        feat2Title: `Near-Graduation Surge & Star-Blue Hand Destruction`,
+        feat2Desc: `At school right before graduation, his power increased far stronger than usual. Armed with future sight piercing acausal attacks and a single strike of his star-blue glowing hand, he permanently brought down the transcendent entity.`,
+        feat3Tag: `Feat 03 — Paper & Spectacle Transcendence`,
+        feat3Title: `Severing All Scenarios & Accessing the Replica Internet`,
+        feat3Desc: `Fully aware that he exists inside fiction, yet remaining free to determine his own life's path while regarding all stories along with their script masters as mere scribble paper—even able to access the Replica Internet Archive in the Unknown dimension to scan the existence data and hierarchies of other entities.`,
+        feat4Tag: `Feat 04 — Neutral Existence`,
+        feat4Title: `Peace at the Blue Moon Apartment (Unknown Dimension)`,
+        feat4Desc: `Although standing two tiers beyond the peak of the R>F space-time hierarchy tower and far surpassing the supreme narrative observer entity, he more often chooses serenity—standing on the top floor of his apartment gazing at the beautiful bluish city beneath the calming moonlight.`,
+        precogTag: `PRECOGNITION // SEEING THE FUTURE`,
+        precogTitle: `Future Vision Scanner`,
+        precogDesc: `Enter a scenario or scan directly what <em>the dressed in jacket</em> sees in his own future beyond the laws of acausality.`,
+        precogPlaceholder: `Optional: enter a future situation (e.g. a script erasure decree)...`,
+        btnScanFuture: `See the Future`
+      }
+    };
+
+    const POWERS_DATA = [
+      {
+        cat: 'hax',
+        id: {
+          tag: 'Hax Tingkat +1',
+          title: 'Imunitas Mutlak Naskah & Penghapusan Konseptual',
+          short: 'Kebal 100% terhadap penulisan ulang plot, dekrit kebenaran absolut, manipulasi teks, dan penghapusan eksistensi yang dimiliki oleh the dressed king.',
+          detail: 'Dibuktikan langsung saat bertarung melawan entitas penguasa naskah: seluruh dekrit penghapusan takdir, hukum mutlak, maupun serangan konseptual tingkat pengarang tidak mampu menyentuhnya sama sekali.',
+          specs: '• Tingkat: +1 di atas Penguasa Naskah\n• Imunitas: Plot, Text, Fate, Law & Conceptual Erasure\n• Bukti: Kebal mutlak dalam duel melawan Entitas'
+        },
+        en: {
+          tag: 'Tier +1 Hax',
+          title: 'Absolute Script & Conceptual Erasure Immunity',
+          short: '100% immune to plot rewriting, absolute truth decrees, text manipulation, and existence erasure possessed by the dressed king.',
+          detail: 'Proven directly when fighting a script-master entity: all fate-erasing decrees, absolute laws, and author-level conceptual attacks fail to touch him whatsoever.',
+          specs: '• Level: +1 above Script Masters\n• Immunity: Plot, Text, Fate, Law & Conceptual Erasure\n• Proof: Total immunity shown in duel against Entity'
+        }
+      },
+      {
+        cat: 'hax',
+        id: {
+          tag: 'Hax Tingkat +1',
+          title: 'Transendensi Menara Ruang-Waktu Berlapis (Infinite R>F)',
+          short: 'Berdiri melampaui menara hierarki ruang-waktu tak terhingga di mana tiap lapisan memandang lapisan di bawahnya fiksi belaka.',
+          detail: 'Di dalam kosmologi TDIJ, konsep ruang dan waktu bukan hanya satu lapis, melainkan menara hierarki tak terhingga dengan transendensi Reality > Fiction (R>F) di setiap tingkatnya. Entitas puncak sekalipun masih beroperasi di dalam menara konseptual itu, sedangkan TDIJ berada di dimensi Unknown secara non-spasial dan non-temporal melampaui keseluruhan sistem hierarki ruang-waktu tersebut.',
+          specs: '• Tingkat: +1 menuju Puncak +2 di atas Menara R>F\n• Kosmologi: Hierarki Ruang-Waktu Berlapis Tak Terhingga (Infinite R>F)\n• Kondisi: Non-Spasial, Non-Temporal & Melampaui Kausalitas'
+        },
+        en: {
+          tag: 'Tier +1 Hax',
+          title: 'Layered Space-Time Tower Transcendence (Infinite R>F)',
+          short: 'Stands beyond an infinite space-time hierarchy tower where each layer regards the layer below it as mere fiction.',
+          detail: 'Within TDIJ\'s cosmology, space and time are not a single layer, but an infinite hierarchy tower with Reality > Fiction (R>F) transcendence at every level. Even peak entities operate within that conceptual tower, whereas TDIJ resides in the Unknown dimension in a non-spatial and non-temporal state beyond that entire space-time hierarchy system.',
+          specs: '• Level: +1 toward +2 Peak above the R>F Tower\n• Cosmology: Infinite Layered Space-Time Hierarchy (Infinite R>F)\n• State: Non-Spatial, Non-Temporal & Beyond Causality'
+        }
+      },
+      {
+        cat: 'meta',
+        id: {
+          tag: 'Meta & Narasi',
+          title: 'Transendensi Kertas & Tontonan Fiksi',
+          short: 'Menganggap seluruh fiksi beserta pengamat tertingginya sebagai lembar kertas yang mudah dicoret atau ditonton.',
+          detail: 'Semua lapisan fiksi beserta otoritas penulis naskah di dalamnya diposisikan sebagai media pasif. Ia dapat menontonnya dari luar atau mencoret kehendak entitas lawan dengan sekali goresan.',
+          specs: '• Status: Superioritas Lapisan Realitas-Fiksi\n• Media: Lembar Kertas / Tontonan\n• Kontrol: Mencoret naskah penguasa cerita'
+        },
+        en: {
+          tag: 'Meta & Narrative',
+          title: 'Fiction Paper & Spectacle Transcendence',
+          short: 'Regards all fiction along with its highest observers as sheets of paper he can effortlessly scribble on or watch.',
+          detail: 'All layers of fiction and the script-author authorities within them are positioned as passive media. He can watch them from outside or cross out an opposing entity\'s will with a single stroke.',
+          specs: '• Status: Reality-Fiction Layer Superiority\n• Medium: Sheets of Paper / Spectacle\n• Control: Scribbles out story-master scripts'
+        }
+      },
+      {
+        cat: 'meta',
+        id: {
+          tag: 'Meta & Informasi (+2)',
+          title: 'Kebebasan Alur & Akses Internet Lintas Penulis',
+          short: 'Sadar penuh berada di fiksi, bebas dari semua skenario, dan dapat mengakses Arsip Internet Replika di dimensi Unknown untuk memindai data eksistensi dan hierarki entitas lain.',
+          detail: 'Kesadaran penuhnya memutus kendali skenario mana pun dan menembus batas wadah fiksi menuju internet nyata—memungkinkannya meneliti powerscaling karakter lain maupun karya penulis berbeda.',
+          specs: '• Tingkat: Otonomi Lintas-Fiksi (+2)\n• Kesadaran: 100% Kesadaran Penuh\n• Akses: Google Pencarian & Internet Nyata'
+        },
+        en: {
+          tag: 'Meta & Information (+2)',
+          title: 'Plot Freedom & Cross-Author Internet Access',
+          short: 'Fully aware of being inside fiction, free from all scenarios, and able to access the Replica Internet Archive in the Unknown dimension to scan the existence data and hierarchies of other entities.',
+          detail: 'His full awareness severs the control of any scenario and breaks beyond the confines of the fictional container toward the real internet—enabling him to research the powerscaling of other characters as well as works by different authors.',
+          specs: '• Level: Cross-Fiction Autonomy (+2)\n• Awareness: 100% Full Awareness\n• Access: Google Search & Real Internet'
+        }
+      },
+      {
+        cat: 'perception',
+        id: {
+          tag: 'Persepsi Tingkat +2',
+          title: 'Prekognisi Masa Depan Lintas-Meta & Anti-Akausal',
+          short: 'Melihat masa depannya sendiri melampaui ruang non-temporal, menggagalkan serangan akausal sebelum terbentuk.',
+          detail: 'Jauh melampaui kemampuan membaca alur dalam lingkup menara cerita: TDIJ melihat masa depan dirinya sendiri menembus lapisan meta serta seluruh hierarki R>F dan mengantisipasi serangan luar-waktu sebelum entitas lawan sempat menyusunnya.',
+          specs: '• Tingkat: +2 di atas Pengamat Non-Temporal\n• Tipe: Self-Precognition Lintas-Meta\n• Fungsi: Menembus & menggagalkan serangan akausal'
+        },
+        en: {
+          tag: 'Tier +2 Perception',
+          title: 'Cross-Meta Future Precognition & Anti-Acausal Evasion',
+          short: 'Sees his own future beyond non-temporal bounds, thwarting acausal attacks before they form.',
+          detail: 'Far beyond reading storylines inside a story tower: TDIJ foresees his own personal future piercing meta-layers and all R>F hierarchies, anticipating out-of-time attacks before the opposing entity can even formulate them.',
+          specs: '• Level: +2 above Non-Temporal Observers\n• Type: Cross-Meta Self-Precognition\n• Function: Pierces & thwarts acausal attacks'
+        }
+      },
+      {
+        cat: 'combat',
+        id: {
+          tag: 'Tempur Tingkat +2',
+          title: 'Lonjakan Kelulusan & Tangan Bintang Biru Penghancur Inti',
+          short: 'Manifestasi bintang biru yang meningkat drastis saat kelulusan, mampu menghancurkan inti entitas abstrak.',
+          detail: 'Saat mendekati kelulusan sekolah, energinya melonjak ke tingkat kedua melampaui puncak teratas menara hierarki ruang-waktu. Satu hantaman tangan bersinar bintang biru menembus keabadian abstrak dan memusnahkan inti eksistensi entitas lawan.',
+          specs: '• Tingkat: +2 di atas Puncak Hierarki Ruang-Waktu\n• Visual: Mata & Tangan Bintang Biru\n• Rekor: Menembus imortalitas & inti Entitas'
+        },
+        en: {
+          tag: 'Tier +2 Combat',
+          title: 'Graduation Surge & Core-Shattering Star-Blue Hands',
+          short: 'Star-blue manifestation that increases drastically near graduation, capable of destroying an abstract entity\'s core.',
+          detail: 'Near school graduation, his energy surges two tiers beyond the topmost peak of the space-time hierarchy tower. One strike of his star-blue glowing hand pierces abstract immortality and annihilates an opposing entity\'s core of existence.',
+          specs: '• Level: +2 above Space-Time Hierarchy Peak\n• Visual: Star-Blue Eyes & Hands\n• Record: Pierced immortality & destroyed Entity core'
+        }
+      }
+    ];
+
+    const FUTURE_VISIONS = {
+      id: [
+        'Malam yang tenang di apartemen lantai atas—cahaya bulan menerangi kota biru yang damai tanpa gangguan alur maupun dekrit mana pun.',
+        'Jika entitas pengarang naskah melancarkan serangan akausal dari luar waktu, TDIJ sudah bergeser setengah langkah sebelum kehendak serangan itu terlintas.',
+        'Dekrit baru mencoba membekukan menara hierarki ruang-waktu tak terhingga, namun gagal total dan langsung dicoret menjadi garis cahaya biru.',
+        'Ia duduk santai mengakses Arsip Internet Replika di dimensi Unknown untuk memindai data eksistensi dan hierarki entitas lain sambil menikmati pemandangan kota malam kebiruan.'
+      ],
+      en: [
+        'A calm night in the top-floor apartment—moonlight illuminates the peaceful blue city without interference from any storyline or decree.',
+        'If a script-writing entity launches an acausal attack from outside time, TDIJ has already shifted half a step aside before the intent of that attack even crosses its mind.',
+        'A new decree attempts to freeze the infinite space-time hierarchy tower, yet fails completely and is immediately scribbled out into a streak of blue light.',
+        'He sits back calmly accessing the Replica Internet Archive in the Unknown dimension to scan the existence data and hierarchies of other entities while enjoying the view of the bluish night city.'
+      ]
+    };
+
+    const TEXT_MSG = {
+      id: {
+        pageTitle: 'the dressed in jacket — Arsip Kekuatan & Duel Entitas',
+        cardLink: 'Buka Detail Kekuatan →',
+        modeCalm: 'Mode Damai',
+        modePeak: 'Mode Puncak (+2)',
+        pillCalm: 'OUTPUT: DAMAI (APARTEMEN BULAN)',
+        pillPeak: 'OUTPUT: PUNCAK KELULUSAN (+2 TINGKAT)',
+        paperSheet: 'MODE: LEMBAR KERTAS FIKSI',
+        paperWatch: 'MODE: TONTONAN FIKSI (MENONTON)',
+        playBtn: '▶ Putar Adegan',
+        pauseBtn: '⏸ Jeda Adegan',
+        atmSch: 'Atmosfer diubah: Sekolah Menjelang Kelulusan (Aura Puncak +2 Aktif)',
+        atmApt: 'Atmosfer diubah: Apartemen Lantai Atas (Kota Malam Biru Damai)',
+        duelDone: 'Pertarungan selesai — jurang 2 tingkat terbukti mutlak.',
+        strikeToast: 'Naskah & dekrit entitas dicoret dari lembar fiksi!',
+        clearToast: 'Lembar kertas fiksi dibersihkan.',
+        emptyQuery: 'Masukkan teks pencarian terlebih dahulu.',
+        langSwitched: 'Bahasa diubah ke Indonesia.',
+        standbyFuture: '[PRECOGNITION STANDBY] — Tekan "Lihat Masa Depan" untuk memproyeksikan penglihatan masa depan.'
+      },
+      en: {
+        pageTitle: 'the dressed in jacket — Power Archive & Entity Duel',
+        cardLink: 'Open Power Details →',
+        modeCalm: 'Peaceful Mode',
+        modePeak: 'Peak Mode (+2)',
+        pillCalm: 'OUTPUT: PEACEFUL (MOONLIT APARTMENT)',
+        pillPeak: 'OUTPUT: GRADUATION PEAK (+2 TIERS)',
+        paperSheet: 'MODE: FICTION PAPER SHEET',
+        paperWatch: 'MODE: FICTION SPECTACLE MODE (WATCHING)',
+        playBtn: '▶ Play Scene',
+        pauseBtn: '⏸ Pause Scene',
+        atmSch: 'Atmosphere changed: School Near Graduation (+2 Peak Aura Active)',
+        atmApt: 'Atmosphere changed: Top-Floor Apartment (Peaceful Blue Night)',
+        duelDone: 'Battle complete — 2-tier gap proven beyond doubt.',
+        strikeToast: 'Entity script & decree scribbled out from the fiction sheet!',
+        clearToast: 'Fiction paper sheet cleared.',
+        emptyQuery: 'Please enter search text first.',
+        langSwitched: 'Language switched to English.',
+        standbyFuture: '[PRECOGNITION STANDBY] — Press "See the Future" to project a future vision.'
+      }
+    };
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function initI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => { I18N.id[el.dataset.i18n] = el.textContent; });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => { I18N.id[el.dataset.i18nHtml] = el.innerHTML; });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { I18N.id[el.dataset.i18nPlaceholder] = el.placeholder; });
+    }
+
+    function setLanguage(lang, silent = false) {
+      if (lang !== 'id' && lang !== 'en') return;
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      document.title = TEXT_MSG[lang].pageTitle;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+
+      const dict = I18N[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        if (dict[el.dataset.i18n] !== undefined) el.textContent = dict[el.dataset.i18n];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        if (dict[el.dataset.i18nHtml] !== undefined) el.innerHTML = dict[el.dataset.i18nHtml];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        if (dict[el.dataset.i18nPlaceholder] !== undefined) el.placeholder = dict[el.dataset.i18nPlaceholder];
+      });
+
+      renderPowers(currentFilter);
+      updateModeUI();
+      updatePaperModeUI();
+      updateAutoPlayUI();
+      renderFutureOutput();
+      if (currentModalIdx !== null) openPowerModal(currentModalIdx);
+      try { localStorage.setItem('tdij_lang', lang); } catch (e) {}
+      if (!silent) showToast(TEXT_MSG[lang].langSwitched);
+    }
+
+    // 2. KEKUATAN & MODAL
+    let currentFilter = 'all';
+    let currentModalIdx = null;
+
+    function renderPowers(filter = 'all') {
+      currentFilter = filter;
+      const grid = document.getElementById('powersGrid');
+      grid.innerHTML = '';
+      POWERS_DATA.forEach((item, idx) => {
+        if (filter !== 'all' && item.cat !== filter) return;
+        const p = item[currentLang];
+        const card = document.createElement('div');
+        card.className = 'glass-card power-card';
+        card.onclick = () => openPowerModal(idx);
+        card.innerHTML = `<div><span class="tag">${p.tag}</span><h3>${p.title}</h3><p>${p.short}</p></div><span class="card-link">${TEXT_MSG[currentLang].cardLink}</span>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterPowers(cat, btn) {
+      document.querySelectorAll('.filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderPowers(cat);
+    }
+
+    function openPowerModal(idx) {
+      currentModalIdx = idx;
+      const p = POWERS_DATA[idx][currentLang];
+      document.getElementById('modalTag').textContent = p.tag;
+      document.getElementById('modalTitle').textContent = p.title;
+      document.getElementById('modalDesc').textContent = p.detail;
+      document.getElementById('modalDetails').innerText = p.specs;
+      document.getElementById('powerModal').classList.add('open');
+    }
+
+    function closeModal() {
+      currentModalIdx = null;
+      document.getElementById('powerModal').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && currentModalIdx !== null) closeModal();
+    });
+
+    // 3. TAB & MODE
+    function switchTab(tabId) {
+      if (tabId !== 'duel') stopAutoplay();
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      const activeBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+      if (tabId === 'meta') requestAnimationFrame(resizeScribbleCanvas);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    let isPeak = false;
+    function updateModeUI() {
+      const m = TEXT_MSG[currentLang];
+      document.getElementById('modeIcon').textContent = isPeak ? '✦' : '🌙';
+      document.getElementById('modeLabel').textContent = isPeak ? m.modePeak : m.modeCalm;
+      document.getElementById('powerStatusPill').textContent = isPeak ? m.pillPeak : m.pillCalm;
+    }
+
+    function togglePeakMode(forceState) {
+      isPeak = typeof forceState === 'boolean' ? forceState : !isPeak;
+      document.body.classList.toggle('peak-mode', isPeak);
+      updateModeUI();
+    }
+
+    function setAtmosphere(type) {
+      togglePeakMode(type === 'school');
+      showToast(type === 'school' ? TEXT_MSG[currentLang].atmSch : TEXT_MSG[currentLang].atmApt);
+    }
+
+    // 4. DUEL VS ENTITAS
+    let currentStoryIdx = 0;
+    let autoplayTimer = null;
+
+    function highlightPhaseCard(phaseIdx) {
+      document.querySelectorAll('.phase-card').forEach((card, i) => card.classList.toggle('active', i === phaseIdx));
+    }
+
+    function selectPhase(phaseIdx) {
+      stopAutoplay();
+      highlightPhaseCard(phaseIdx);
+      const paragraphs = Array.from(document.querySelectorAll('#storyContainer .story-p'));
+      const targetIdx = paragraphs.findIndex(p => Number(p.dataset.phase) === phaseIdx);
+      if (targetIdx !== -1) setActiveStoryParagraph(targetIdx);
+      togglePeakMode(phaseIdx === 3);
+    }
+
+    function jumpToStory(idx) {
+      stopAutoplay();
+      setActiveStoryParagraph(idx);
+    }
+
+    function setActiveStoryParagraph(idx) {
+      const paragraphs = document.querySelectorAll('#storyContainer .story-p');
+      currentStoryIdx = idx % paragraphs.length;
+      paragraphs.forEach((p, i) => p.classList.toggle('active-line', i === currentStoryIdx));
+      const phase = Number(paragraphs[currentStoryIdx].dataset.phase);
+      highlightPhaseCard(phase);
+      togglePeakMode(phase === 3 && currentStoryIdx < paragraphs.length - 1);
+    }
+
+    function stepStory(dir) {
+      const paragraphs = document.querySelectorAll('#storyContainer .story-p');
+      setActiveStoryParagraph((currentStoryIdx + dir + paragraphs.length) % paragraphs.length);
+    }
+
+    function updateAutoPlayUI() {
+      const m = TEXT_MSG[currentLang];
+      document.getElementById('autoPlayBtn').textContent = autoplayTimer ? m.pauseBtn : m.playBtn;
+    }
+
+    function stopAutoplay() {
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+        updateAutoPlayUI();
+      }
+    }
+
+    function toggleStoryAutoplay() {
+      if (autoplayTimer) { stopAutoplay(); return; }
+      const paragraphs = document.querySelectorAll('#storyContainer .story-p');
+      if (currentStoryIdx >= paragraphs.length - 1) setActiveStoryParagraph(0);
+      autoplayTimer = setInterval(() => {
+        if (currentStoryIdx >= paragraphs.length - 1) {
+          stopAutoplay();
+          showToast(TEXT_MSG[currentLang].duelDone);
+          return;
+        }
+        stepStory(1);
+      }, 3600);
+      updateAutoPlayUI();
+    }
+
+    // 5. KANVAS CORET FIKSI (TANPA MENGHAPUS CORETAN SAAT PINDAH TAB / RESIZE)
+    const scribbleCanvas = document.getElementById('scribbleCanvas');
+    const sCtx = scribbleCanvas.getContext('2d');
+    let drawing = false, lastX = 0, lastY = 0, isWatchMode = false;
+
+    function resizeScribbleCanvas() {
+      const stage = scribbleCanvas.parentElement;
+      const newW = stage.clientWidth;
+      const newH = stage.clientHeight;
+      if (!newW || !newH) return;
+      if (scribbleCanvas.width === newW && scribbleCanvas.height === newH) return;
+
+      let backup = null;
+      if (scribbleCanvas.width > 0 && scribbleCanvas.height > 0) {
+        backup = document.createElement('canvas');
+        backup.width = scribbleCanvas.width;
+        backup.height = scribbleCanvas.height;
+        backup.getContext('2d').drawImage(scribbleCanvas, 0, 0);
+      }
+
+      scribbleCanvas.width = newW;
+      scribbleCanvas.height = newH;
+
+      if (backup) {
+        sCtx.drawImage(backup, 0, 0, newW, newH);
+      }
+    }
+
+    function getPos(e) {
+      const rect = scribbleCanvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    scribbleCanvas.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      resizeScribbleCanvas();
+      drawing = true;
+      try { scribbleCanvas.setPointerCapture(e.pointerId); } catch (err) {}
+      const pos = getPos(e);
+      lastX = pos.x; lastY = pos.y;
+      sCtx.fillStyle = '#0ea5e9';
+      sCtx.shadowColor = '#38bdf8';
+      sCtx.shadowBlur = 10;
+      sCtx.beginPath();
+      sCtx.arc(pos.x, pos.y, 2.2, 0, Math.PI * 2);
+      sCtx.fill();
+    });
+
+    scribbleCanvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      const pos = getPos(e);
+      sCtx.strokeStyle = '#0ea5e9'; sCtx.lineWidth = 4; sCtx.lineCap = 'round';
+      sCtx.shadowColor = '#38bdf8'; sCtx.shadowBlur = 10;
+      sCtx.beginPath(); sCtx.moveTo(lastX, lastY); sCtx.lineTo(pos.x, pos.y); sCtx.stroke();
+      lastX = pos.x; lastY = pos.y;
+    });
+
+    ['pointerup', 'pointercancel'].forEach(ev => {
+      scribbleCanvas.addEventListener(ev, (e) => {
+        drawing = false;
+        try { scribbleCanvas.releasePointerCapture(e.pointerId); } catch (err) {}
+      });
+    });
+
+    function strikeStory() {
+      resizeScribbleCanvas();
+      const w = scribbleCanvas.width, h = scribbleCanvas.height;
+      sCtx.strokeStyle = '#0284c7'; sCtx.lineWidth = 5; sCtx.lineCap = 'round';
+      sCtx.shadowColor = '#38bdf8'; sCtx.shadowBlur = 12;
+      sCtx.beginPath(); sCtx.moveTo(18, h * 0.28); sCtx.lineTo(w - 18, h * 0.72);
+      sCtx.moveTo(w - 22, h * 0.25); sCtx.lineTo(22, h * 0.76); sCtx.stroke();
+      document.getElementById('paperStoryText').classList.add('crossed');
+      showToast(TEXT_MSG[currentLang].strikeToast);
+    }
+
+    function clearCanvas() {
+      sCtx.clearRect(0, 0, scribbleCanvas.width, scribbleCanvas.height);
+      document.getElementById('paperStoryText').classList.remove('crossed');
+      showToast(TEXT_MSG[currentLang].clearToast);
+    }
+
+    function updatePaperModeUI() {
+      const m = TEXT_MSG[currentLang];
+      document.getElementById('paperModeLabel').textContent = isWatchMode ? m.paperWatch : m.paperSheet;
+    }
+
+    function togglePaperMode() {
+      isWatchMode = !isWatchMode;
+      document.getElementById('paperWrapper').classList.toggle('watch-mode', isWatchMode);
+      updatePaperModeUI();
+    }
+
+    // 6. PENCARIAN GOOGLE LANGSUNG
+    function updateGooglePreview() {
+      const q = document.getElementById('googleQueryInput').value.trim();
+      document.getElementById('googleUrlPreview').textContent =
+        'https://www.google.com/search?q=' + encodeURIComponent(q);
+    }
+
+    function goToGoogleSearch(e) {
+      e.preventDefault();
+      const input = document.getElementById('googleQueryInput');
+      const query = input.value.trim();
+      if (!query) {
+        showToast(TEXT_MSG[currentLang].emptyQuery);
+        input.focus();
+        return;
+      }
+      const targetUrl = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+      const sameTab = document.getElementById('sameTabCheck').checked;
+      if (sameTab) {
+        window.location.href = targetUrl;
+      } else {
+        const win = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        if (!win) window.location.href = targetUrl;
+      }
+    }
+
+    // 7. PEMINDAI MASA DEPAN (AMAN DARI INJEKSI HTML)
+    let lastFutureState = { type: 'standby' };
+
+    function renderFutureOutput() {
+      const out = document.getElementById('futureOutput');
+      if (lastFutureState.type === 'standby') {
+        out.textContent = TEXT_MSG[currentLang].standbyFuture;
+      } else if (lastFutureState.type === 'custom') {
+        const safeText = escapeHtml(lastFutureState.text);
+        const safeUpper = escapeHtml(lastFutureState.text.toUpperCase());
+        out.innerHTML = currentLang === 'en'
+          ? `<div style="color: var(--star-cyan); margin-bottom: 0.35rem;">[PRECOGNITION: "${safeUpper}"]</div><div>Seen clearly in his future: Two tiers above the topmost peak of the infinite R&gt;F space-time hierarchy tower, he has already anticipated "${safeText}" in his non-spatial and non-temporal state. Unbound by any decree or script manipulation, he steps freely and returns to enjoy the bluish night city.</div>`
+          : `<div style="color: var(--star-cyan); margin-bottom: 0.35rem;">[PRECOGNITION: "${safeUpper}"]</div><div>Terlihat jelas di masa depannya: Dua tingkat melampaui puncak teratas menara hierarki ruang-waktu tak terhingga (Infinite R&gt;F), ia telah mengantisipasi "${safeText}" secara non-spasial dan non-temporal. Tanpa terikat dekrit maupun manipulasi naskah apa pun, ia melangkah bebas dan kembali menikmati kota malam kebiruan.</div>`;
+      } else {
+        const vision = FUTURE_VISIONS[currentLang][lastFutureState.index];
+        const header = currentLang === 'en' ? '[FUTURE VISION DETECTED]' : '[PENGLIHATAN MASA DEPAN TERDETEKSI]';
+        out.innerHTML = `<div style="color: var(--star-cyan); margin-bottom: 0.35rem;">${header}</div><div>${vision}</div>`;
+      }
+    }
+
+    function scanFuture() {
+      const custom = document.getElementById('futureInput').value.trim();
+      if (custom) {
+        lastFutureState = { type: 'custom', text: custom };
+      } else {
+        const index = Math.floor(Math.random() * FUTURE_VISIONS.id.length);
+        lastFutureState = { type: 'preset', index };
+      }
+      renderFutureOutput();
+    }
+
+    // 8. TOAST & STARFIELD
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    const starCanvas = document.getElementById('starfield');
+    const starCtx = starCanvas.getContext('2d');
+    let stars = [];
+    let lastStarW = 0, lastStarH = 0;
+
+    function initStars(force = false) {
+      const w = window.innerWidth, h = window.innerHeight;
+      if (!force && stars.length && w === lastStarW && Math.abs(h - lastStarH) < 120) {
+        starCanvas.width = w;
+        starCanvas.height = h;
+        return;
+      }
+      lastStarW = w; lastStarH = h;
+      starCanvas.width = w; starCanvas.height = h;
+      stars = Array.from({ length: 110 }, () => ({
+        x: Math.random() * w, y: Math.random() * h,
+        r: Math.random() * 1.6 + 0.4, speed: Math.random() * 0.35 + 0.1, alpha: Math.random() * 0.7 + 0.3
+      }));
+    }
+
+    function animateStars() {
+      starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      const boost = isPeak ? 2.6 : 1;
+      stars.forEach(s => {
+        s.y -= s.speed * boost;
+        if (s.y < 0) { s.y = starCanvas.height; s.x = Math.random() * starCanvas.width; }
+        starCtx.beginPath(); starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        starCtx.fillStyle = isPeak ? `rgba(0, 229, 255, ${s.alpha})` : `rgba(186, 230, 253, ${s.alpha})`;
+        starCtx.fill();
+      });
+      requestAnimationFrame(animateStars);
+    }
+
+    window.addEventListener('resize', () => { initStars(false); resizeScribbleCanvas(); });
+    initI18n();
+    let savedLang = 'id';
+    try { savedLang = localStorage.getItem('tdij_lang') === 'en' ? 'en' : 'id'; } catch (e) {}
+    setLanguage(savedLang, true);
+    initStars(true);
+    animateStars();
+  </script>
+</body>
+</html>
